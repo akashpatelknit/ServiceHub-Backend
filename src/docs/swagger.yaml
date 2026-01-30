@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  title: ServiceHub API Documentation
+  version: 1.0.0
+  description: Complete API documentation for ServiceHub application
+  contact:
+    name: API Support
+    email: support@servicehub.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.servicehub.com
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+  schemas:
+    # Auth Schemas
+    User:
+      $ref: './schemas/auth.yaml#/User'
+    RegisterInput:
+      $ref: './schemas/auth.yaml#/RegisterInput'
+    LoginInput:
+      $ref: './schemas/auth.yaml#/LoginInput'
+    AuthResponse:
+      $ref: './schemas/auth.yaml#/AuthResponse'
+
+tags:
+  - name: Admin Authentication
+    description: Admin authentication endpoints
+  - name: User Authentication
+    description: User authentication endpoints
+  - name: Vendor Authentication
+    description: Vendor authentication endpoints
+
+paths:
+  # Admin Auth Routes
+  /api/v1/auth/admin/register:
+    $ref: './paths/auth/admin.yaml#/register'
+  /api/v1/auth/admin/login:
+    $ref: './paths/auth/admin.yaml#/login'
+  /api/v1/auth/admin/profile:
+    $ref: './paths/auth/admin.yaml#/profile'
+  /api/v1/auth/admin/logout:
+    $ref: './paths/auth/admin.yaml#/logout'
+  
+  # User Auth Routes
+  /api/v1/auth/user/register:
+    $ref: './paths/auth/user.yaml#/register'
+  /api/v1/auth/user/login:
+    $ref: './paths/auth/user.yaml#/login'
+  /api/v1/auth/user/profile:
+    $ref: './paths/auth/user.yaml#/profile'
+  /api/v1/auth/user/logout:
+    $ref: './paths/auth/user.yaml#/logout'
+  
+  # Vendor Auth Routes
+  /api/v1/auth/vendor/register:
+    $ref: './paths/auth/vendor.yaml#/register'
+  /api/v1/auth/vendor/login:
+    $ref: './paths/auth/vendor.yaml#/login'
+  /api/v1/auth/vendor/profile:
+    $ref: './paths/auth/vendor.yaml#/profile'
+  /api/v1/auth/vendor/logout:
+    $ref: './paths/auth/vendor.yaml#/logout'

@@ -1,0 +1,136 @@
+register:
+  post:
+    summary: Register a new user
+    description: Create a new user account
+    tags:
+      - User Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/RegisterInput'
+    responses:
+      '201':
+        description: User registered successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/AuthResponse'
+      '400':
+        description: Invalid input
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Invalid input or user already exists"
+
+login:
+  post:
+    summary: Login user
+    description: Authenticate user and receive JWT token
+    tags:
+      - User Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/LoginInput'
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/AuthResponse'
+      '401':
+        description: Invalid credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Invalid credentials"
+
+profile:
+  get:
+    summary: Get user profile
+    description: Retrieve authenticated user's profile
+    tags:
+      - User Authentication
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Profile retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../../schemas/auth.yaml#/User'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Unauthorized - Invalid or missing token"
+
+logout:
+  post:
+    summary: Logout user
+    description: Invalidate the current session
+    tags:
+      - User Authentication
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Logout successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: "Logged out successfully"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Unauthorized"

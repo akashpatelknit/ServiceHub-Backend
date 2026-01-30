@@ -18,6 +18,7 @@ import { bookingNotificationService } from './services/booking/booking.notificat
 import './config/instrument.mjs';
 import { uploadExcel } from './middlewares/multer.middleware.js';
 import { addonsUpload } from './controllers/excel-upload/excelUpload.controller.js';
+import { swaggerSpec, swaggerUi } from './config/swagger.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -112,7 +113,7 @@ app.get('/debug-sentry', function mainHandler(req, res) {
 //   await bookingNotificationService.sendBookingConformationNotificationToVendorTesting(req.body.token);
 //   return res.status(200).json({ success: true });
 // });
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1', router);
 
 // Global Error Handler
