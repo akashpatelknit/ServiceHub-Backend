@@ -38,7 +38,6 @@ function resolveRefs(obj, basePath, visited = new Set()) {
         for (const part of anchor.split('/').filter(Boolean)) {
           resolved = resolved?.[part];
           if (!resolved) {
-            console.error(`❌ Cannot resolve anchor #${anchor} in ${filePath}`);
             return obj;
           }
         }
@@ -81,8 +80,6 @@ function loadSchemas(schemasDir) {
 const swaggerFile = path.join(__dirname, '../docs/swagger.yaml');
 const schemasDir = path.join(__dirname, '../docs/schemas');
 
-console.log('📂 Loading Swagger:', swaggerFile);
-
 try {
   const rootYaml = YAML.parse(fs.readFileSync(swaggerFile, 'utf8'));
 
@@ -94,12 +91,7 @@ try {
   };
 
   swaggerSpec = resolveRefs(rootYaml, path.dirname(swaggerFile));
-
-  console.log('✅ Swagger loaded successfully');
-  console.log('📄 Paths:', Object.keys(swaggerSpec.paths || {}).length);
-  console.log('📦 Schemas:', Object.keys(swaggerSpec.components.schemas || {}).length);
 } catch (err) {
-  console.error('❌ Swagger load failed:', err.message);
   throw err;
 }
 

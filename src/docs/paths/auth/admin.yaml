@@ -29,7 +29,7 @@ register:
                   example: false
                 message:
                   type: string
-                  example: "Invalid input or admin already exists"
+                  example: 'Invalid input or admin already exists'
 
 login:
   post:
@@ -62,7 +62,7 @@ login:
                   example: false
                 message:
                   type: string
-                  example: "Invalid credentials"
+                  example: 'Invalid credentials'
 
 profile:
   get:
@@ -84,7 +84,7 @@ profile:
                   type: boolean
                   example: true
                 data:
-                  $ref: '../../schemas/auth.yaml#/User'
+                  $ref: '../../schemas/auth.yaml#/components/schemas/User'
       '401':
         description: Unauthorized
         content:
@@ -97,7 +97,7 @@ profile:
                   example: false
                 message:
                   type: string
-                  example: "Unauthorized - Invalid or missing token"
+                  example: 'Unauthorized - Invalid or missing token'
 
 logout:
   post:
@@ -120,7 +120,7 @@ logout:
                   example: true
                 message:
                   type: string
-                  example: "Logged out successfully"
+                  example: 'Logged out successfully'
       '401':
         description: Unauthorized
         content:
@@ -133,4 +133,4 @@ logout:
                   example: false
                 message:
                   type: string
-                  example: "Unauthorized"
+                  example: 'Unauthorized'

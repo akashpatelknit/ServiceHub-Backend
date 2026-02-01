@@ -1,49 +1,40 @@
 import mongoose from 'mongoose';
+import { ADDRESS_TYPES } from '../constants/index.js';
+const { Schema } = mongoose;
 
-const AddressSchema = new mongoose.Schema({
-  line1: { type: String, trim: true, required: true },
-  line2: { type: String, trim: true },
-  street: { type: String, trim: true },
-  city: { type: String, required: true, trim: true, index: true },
-  state: { type: String, required: true, trim: true, index: true },
-  country: { type: String, required: true, trim: true, index: true },
-  postalCode: { type: String, required: true, trim: true },
-  landmark: { type: String, trim: true },
-  completeAddress: { type: String, trim: true },
-  addressType: {
-    type: String,
-    trim: true,
-    enum: ['home', 'work', 'office', 'other'],
-    default: 'home',
+const AddressSchema = new Schema(
+  {
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pinCode: {
+      type: String,
+      required: true,
+      match: [/^\d{6}$/, 'PIN code must be 6 digits'],
+    },
+    addressType: {
+      type: String,
+      enum: Object.values(ADDRESS_TYPES),
+      default: ADDRESS_TYPES.CURRENT,
+    },
+    country: {
+      type: String,
+      default: 'India',
+    },
+    landmark: {
+      type: String,
+      default: null,
+    },
+    completeAddress: {
+      type: String,
+      default: null,
+    },
   },
-  googleMapUrl: { type: String, trim: true },
-  location: {
-    type: { type: String, enum: ['Point'], default: 'Point' },
-    coordinates: { type: [Number], default: [0, 0] },
-  },
-});
-
-AddressSchema.index({ location: '2dsphere' });
+  { _id: false }
+);
 
 AddressSchema.pre('save', function (next) {
-  const parts = [
-    this.line1,
-    this.line2,
-    this.street,
-    this.landmark,
-    this.city,
-    this.state,
-    this.country,
-    this.postalCode,
-  ].filter(Boolean);
-
-  this.completeAddress = parts.join(', ');
-
-  if (this.location && Array.isArray(this.location.coordinates) && this.location.coordinates.length === 2) {
-    const [lng, lat] = this.location.coordinates;
-    this.googleMapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-  }
-
+  this.completeAddress = `${this.street}, ${this.landmark ? this.landmark + ', ' : ''}${this.city}, ${this.state} - ${this.pinCode}, ${this.country}`;
   next();
 });
 

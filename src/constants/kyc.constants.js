@@ -1,25 +1,40 @@
-export const KYC_STATUSES = Object.freeze({
-  INCOMPLETE: 'incomplete',
-  PENDING: 'pending',
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
-  EXPIRED: 'expired',
-  UNDER_REVIEW: 'under_review',
+export const KYC_STATUS = Object.freeze({
+  INCOMPLETE: 'INCOMPLETE',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  EXPIRED: 'EXPIRED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
 });
 
 export const DOCUMENT_TYPES = Object.freeze({
-  PASSPORT: 'passport',
-  DRIVING_LICENSE: 'driving_license',
-  NATIONAL_ID: 'national_id',
-  VOTER_ID: 'voter_id',
-  PAN_CARD: 'pan_card',
-  AADHAAR: 'aadhaar',
+  PASSPORT: 'PASSPORT',
+  DRIVING_LICENSE: 'DRIVING_LICENSE',
+  NATIONAL_ID: 'NATIONAL_ID',
+  VOTER_ID: 'VOTER_ID',
+  PAN_CARD: 'PAN_CARD',
+  AADHAAR: 'AADHAAR',
 });
 
 export const ADDRESS_TYPES = Object.freeze({
-  PERMANENT: 'permanent',
-  CURRENT: 'current',
-  BUSINESS: 'business',
-  CORRESPONDENCE: 'correspondence',
-  OTHER: 'other',
+  PERMANENT: 'PERMANENT',
+  CURRENT: 'CURRENT',
+  BUSINESS: 'BUSINESS',
+  CORRESPONDENCE: 'CORRESPONDENCE',
+  OTHER: 'OTHER',
+});
+
+export const DOCUMENT_STATUS = Object.freeze({
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED',
+});
+
+export const VERIFICATION_ACTION = Object.freeze({
+  SUBMITTED: 'SUBMITTED',
+  MOVED_TO_REVIEW: 'MOVED_TO_REVIEW',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RESUBMITTED: 'RESUBMITTED',
+  EXPIRED: 'EXPIRED',
 });

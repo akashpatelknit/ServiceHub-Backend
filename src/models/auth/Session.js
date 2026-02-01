@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { toSnakeCaseTransform } from '../utils/toSnakeCase.js';
 
 const sessionSchema = new mongoose.Schema(
   {

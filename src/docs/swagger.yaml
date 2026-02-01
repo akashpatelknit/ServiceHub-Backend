@@ -8,9 +8,9 @@ info:
     email: support@servicehub.com
 
 servers:
-  - url: http://localhost:8000
+  - url: http://localhost:8000/api/v1
     description: Development server
-  - url: https://api.servicehub.com
+  - url: https://api.servicehub.com/api/v1
     description: Production server
 
 components:
@@ -19,7 +19,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    
+
   schemas:
     # Auth Schemas
     User:
@@ -30,6 +30,10 @@ components:
       $ref: './schemas/auth.yaml#/LoginInput'
     AuthResponse:
       $ref: './schemas/auth.yaml#/AuthResponse'
+    
+    # Address Schemas
+    Address:
+      $ref: './schemas/address.yaml#/Address'
 
 tags:
   - name: Admin Authentication
@@ -41,31 +45,31 @@ tags:
 
 paths:
   # Admin Auth Routes
-  /api/v1/auth/admin/register:
+  /auth/admin/register:
     $ref: './paths/auth/admin.yaml#/register'
-  /api/v1/auth/admin/login:
+  /auth/admin/login:
     $ref: './paths/auth/admin.yaml#/login'
-  /api/v1/auth/admin/profile:
+  /auth/admin/profile:
     $ref: './paths/auth/admin.yaml#/profile'
-  /api/v1/auth/admin/logout:
+  /auth/admin/logout:
     $ref: './paths/auth/admin.yaml#/logout'
-  
+
   # User Auth Routes
-  /api/v1/auth/user/register:
+  /auth/user/register:
     $ref: './paths/auth/user.yaml#/register'
-  /api/v1/auth/user/login:
+  /auth/user/login:
     $ref: './paths/auth/user.yaml#/login'
-  /api/v1/auth/user/profile:
+  /auth/user/profile:
     $ref: './paths/auth/user.yaml#/profile'
-  /api/v1/auth/user/logout:
+  /auth/user/logout:
     $ref: './paths/auth/user.yaml#/logout'
-  
+
   # Vendor Auth Routes
-  /api/v1/auth/vendor/register:
+  /auth/vendor/register:
     $ref: './paths/auth/vendor.yaml#/register'
-  /api/v1/auth/vendor/login:
+  /auth/vendor/login:
     $ref: './paths/auth/vendor.yaml#/login'
-  /api/v1/auth/vendor/profile:
+  /auth/vendor/profile:
     $ref: './paths/auth/vendor.yaml#/profile'
-  /api/v1/auth/vendor/logout:
+  /auth/vendor/logout:
     $ref: './paths/auth/vendor.yaml#/logout'
