@@ -1,0 +1,75 @@
+openapi: 3.0.0
+info:
+  title: ServiceHub API Documentation
+  version: 1.0.0
+  description: Complete API documentation for ServiceHub application
+  contact:
+    name: API Support
+    email: support@servicehub.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.servicehub.com/api/v1
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Auth Schemas
+    User:
+      $ref: './schemas/auth.yaml#/User'
+    RegisterInput:
+      $ref: './schemas/auth.yaml#/RegisterInput'
+    LoginInput:
+      $ref: './schemas/auth.yaml#/LoginInput'
+    AuthResponse:
+      $ref: './schemas/auth.yaml#/AuthResponse'
+    
+    # Address Schemas
+    Address:
+      $ref: './schemas/address.yaml#/Address'
+
+tags:
+  - name: Admin Authentication
+    description: Admin authentication endpoints
+  - name: User Authentication
+    description: User authentication endpoints
+  - name: Vendor Authentication
+    description: Vendor authentication endpoints
+
+paths:
+  # Admin Auth Routes
+  /auth/admin/register:
+    $ref: './paths/auth/admin.yaml#/register'
+  /auth/admin/login:
+    $ref: './paths/auth/admin.yaml#/login'
+  /auth/admin/profile:
+    $ref: './paths/auth/admin.yaml#/profile'
+  /auth/admin/logout:
+    $ref: './paths/auth/admin.yaml#/logout'
+
+  # User Auth Routes
+  /auth/user/register:
+    $ref: './paths/auth/user.yaml#/register'
+  /auth/user/login:
+    $ref: './paths/auth/user.yaml#/login'
+  /auth/user/profile:
+    $ref: './paths/auth/user.yaml#/profile'
+  /auth/user/logout:
+    $ref: './paths/auth/user.yaml#/logout'
+
+  # Vendor Auth Routes
+  /auth/vendor/register:
+    $ref: './paths/auth/vendor.yaml#/register'
+  /auth/vendor/login:
+    $ref: './paths/auth/vendor.yaml#/login'
+  /auth/vendor/profile:
+    $ref: './paths/auth/vendor.yaml#/profile'
+  /auth/vendor/logout:
+    $ref: './paths/auth/vendor.yaml#/logout'

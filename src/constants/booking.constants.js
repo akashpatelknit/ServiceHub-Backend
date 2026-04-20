@@ -1,0 +1,17 @@
+export const BOOKING_STATUSES = Object.freeze({
+  PENDING: 'pending',
+  SEARCHING: 'searching',
+  VENDOR_ASSIGNED: 'vendor_assigned',
+  CONFIRMED: 'confirmed',
+  ON_ROUTE: 'on_route',
+  ARRIVED: 'arrived',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  CANCELLED_BY_USER: 'cancelled_by_user',
+  CANCELLED_BY_VENDOR: 'cancelled_by_vendor',
+  CANCELLED_BY_SYSTEM: 'cancelled_by_system',
+  REJECTED: 'rejected',
+  FAILED: 'failed',
+  EXPIRED: 'expired',
+});

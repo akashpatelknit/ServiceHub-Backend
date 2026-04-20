@@ -1,0 +1,31 @@
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          example: 123 Main St
+        city:
+          type: string
+          example: Mumbai
+        state:
+          type: string
+          example: Maharashtra
+        pinCode:
+          type: string
+          example: '400001'
+        addressType:
+          type: string
+          enum: [PERMANENT, CURRENT, BUSINESS, CORRESPONDENCE, OTHER]
+          example: CURRENT
+        country:
+          type: string
+          example: India
+        landmark:
+          type: string
+          example: Mahim
+        completeAddress:
+          type: string
+          example: 123 Main St, Mahim, Mumbai - 400001, India     
+          

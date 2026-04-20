@@ -1,0 +1,136 @@
+register:
+  post:
+    summary: Register a new vendor
+    description: Create a new vendor account
+    tags:
+      - Vendor Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/RegisterInput'
+    responses:
+      '201':
+        description: Vendor registered successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/AuthResponse'
+      '400':
+        description: Invalid input
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Invalid input or vendor already exists"
+
+login:
+  post:
+    summary: Login vendor
+    description: Authenticate vendor and receive JWT token
+    tags:
+      - Vendor Authentication
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/LoginInput'
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/AuthResponse'
+      '401':
+        description: Invalid credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Invalid credentials"
+
+profile:
+  get:
+    summary: Get vendor profile
+    description: Retrieve authenticated vendor's profile
+    tags:
+      - Vendor Authentication
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Profile retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                data:
+                  $ref: '../../schemas/auth.yaml#/User'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Unauthorized - Invalid or missing token"
+
+logout:
+  post:
+    summary: Logout vendor
+    description: Invalidate the current session
+    tags:
+      - Vendor Authentication
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Logout successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: "Logged out successfully"
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: false
+                message:
+                  type: string
+                  example: "Unauthorized"

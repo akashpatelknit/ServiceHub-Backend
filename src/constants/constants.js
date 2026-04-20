@@ -1,6 +1,6 @@
 import config from '../config/config.js';
 
-export const DB_NAME = 'homekrew';
+export const DB_NAME = 'servicehub';
 
 const testVendorPhoneNumber = '9876543210';
 const testUserPhoneNumber = '9876543210';
