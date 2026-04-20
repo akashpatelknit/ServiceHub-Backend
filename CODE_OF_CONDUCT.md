@@ -1,42 +1,49 @@
-
----
-
-# 📄 `CODE_OF_CONDUCT.md`
-
-```md
 # Code of Conduct
 
 ## Our Pledge
 
-We pledge to make participation in this project a harassment-free experience for everyone, regardless of age, gender, identity, experience, or background.
+We are committed to fostering an open and welcoming environment.  
+Participation in this project should be a harassment-free experience for everyone, regardless of age, gender, identity, experience, or background.
 
 ---
 
 ## Expected Behavior
 
+All participants are expected to:
+
 - Be respectful and inclusive
-- Accept constructive feedback gracefully
-- Focus on what is best for the community
-- Show empathy towards others
+- Communicate constructively and professionally
+- Accept feedback gracefully
+- Focus on what benefits the community
+- Show empathy and kindness toward others
 
 ---
 
 ## Unacceptable Behavior
 
-- Harassment or discrimination of any kind
-- Trolling, insults, or personal attacks
-- Publishing private information without consent
-- Any behavior that violates professional standards
+The following behaviors are not tolerated:
+
+- Harassment, discrimination, or hate speech of any kind
+- Trolling, insulting, or personal attacks
+- Sharing private or sensitive information without consent
+- Any conduct that is inappropriate in a professional setting
 
 ---
 
 ## Enforcement
 
-Project maintainers are responsible for enforcing this Code of Conduct.  
-Violations may result in warnings, temporary bans, or permanent removal from the project.
+Project maintainers are responsible for enforcing this Code of Conduct.
+
+They may take appropriate action in response to violations, including:
+
+- Issuing warnings
+- Temporarily restricting participation
+- Permanently removing contributors from the project
 
 ---
 
-## Contact
+## Reporting Issues
 
-If you experience or witness unacceptable behavior, please contact the project maintainer.
+If you experience or witness unacceptable behavior, please report it to the project maintainer.
+
+All reports will be handled with care and confidentiality.
