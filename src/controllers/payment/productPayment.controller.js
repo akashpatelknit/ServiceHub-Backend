@@ -3,7 +3,7 @@ import { Coupon } from '../../models/coupon.model.js';
 import Order from '../../models/order.model.js';
 import { Product } from '../../models/product.model.js';
 import Transaction from '../../models/transaction.model.js';
-import { User } from '../../models/user.model.js';
+import { User } from '../../core/models/index.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -13,7 +13,7 @@ import crypto from 'crypto';
 import { createProductOrderRazorpay } from './utils/createRazorpayOrder.js';
 import { getIO } from '../../sockets/socket.config.js';
 import { createNotification } from '../notification/utils/createNotification.js';
-import { addressService } from '../../services/address/address.command.service.js';
+import { addressService } from '../../features/address/services/address.service.js';
 import { formatProductPricing } from '../product/utils/index.js';
 import { loaderService } from '../../services/common/loader.query.service.js';
 

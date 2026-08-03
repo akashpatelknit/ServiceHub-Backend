@@ -1,4 +1,4 @@
-import Vendor from '../../models/vendor.model';
+import { Vendor } from '../../core/models/index.js';
 import { checkSameUser } from '../../utils/helpers/verifyUser';
 import { Service } from '../../models/service.model';
 import { ApiError } from '../../utils/ApiError';

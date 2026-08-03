@@ -1,42 +1,8 @@
-register:
-  post:
-    summary: Register a new admin
-    description: Create a new admin account
-    tags:
-      - Admin Authentication
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../schemas/auth.yaml#/RegisterInput'
-    responses:
-      '201':
-        description: Admin registered successfully
-        content:
-          application/json:
-            schema:
-              $ref: '../../schemas/auth.yaml#/AuthResponse'
-      '400':
-        description: Invalid input
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: 'Invalid input or admin already exists'
-
 login:
   post:
-    summary: Login admin
-    description: Authenticate admin and receive JWT token
-    tags:
-      - Admin Authentication
+    summary: Log in an admin
+    description: No public signup — admin accounts are provisioned by another admin via PATCH /admin/{adminId}/sub-role.
+    tags: [Admin Authentication]
     requestBody:
       required: true
       content:
@@ -49,88 +15,128 @@ login:
         content:
           application/json:
             schema:
-              $ref: '../../schemas/auth.yaml#/AuthResponse'
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
       '401':
         description: Invalid credentials
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: 'Invalid credentials'
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '403':
+        description: Account is blocked
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
 
-profile:
-  get:
-    summary: Get admin profile
-    description: Retrieve authenticated admin's profile
-    tags:
-      - Admin Authentication
-    security:
-      - bearerAuth: []
+refresh:
+  post:
+    summary: Rotate an access/refresh token pair
+    tags: [Admin Authentication]
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/RefreshTokenInput'
     responses:
       '200':
-        description: Profile retrieved successfully
+        description: New token pair issued
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                data:
-                  $ref: '../../schemas/auth.yaml#/components/schemas/User'
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
       '401':
-        description: Unauthorized
+        description: Refresh token missing, invalid, expired, or reused
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: 'Unauthorized - Invalid or missing token'
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
 
 logout:
   post:
-    summary: Logout admin
-    description: Invalidate the current session
-    tags:
-      - Admin Authentication
+    summary: Log out (revokes the current access token)
+    tags: [Admin Authentication]
     security:
       - bearerAuth: []
     responses:
       '200':
-        description: Logout successful
+        description: Logged out
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                message:
-                  type: string
-                  example: 'Logged out successfully'
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
       '401':
-        description: Unauthorized
+        description: Access token missing, invalid, expired, or already revoked
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: 'Unauthorized'
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+forgotPassword:
+  post:
+    summary: Request a password reset token
+    tags: [Admin Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ForgotPasswordInput'
+    responses:
+      '200':
+        description: Always 200 — does not reveal whether the email is registered
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+
+resetPassword:
+  post:
+    summary: Reset password using a reset token
+    tags: [Admin Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ResetPasswordInput'
+    responses:
+      '200':
+        description: Password reset — new token pair issued
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
+      '400':
+        description: Invalid or expired reset token
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+changePassword:
+  patch:
+    summary: Change password while logged in
+    tags: [Admin Authentication]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ChangePasswordInput'
+    responses:
+      '200':
+        description: Password changed — client must log in again
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+      '401':
+        description: Not authenticated, or oldPassword incorrect
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'

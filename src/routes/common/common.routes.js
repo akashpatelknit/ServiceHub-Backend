@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import adminAuthController from '../../controllers/admin/admin.auth.controller.js';
-import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 import { getAddressFromCoordinates } from '../../utils/helpers/maps/getAddressFromCoordinates.js';
 
 const router = Router();

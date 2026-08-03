@@ -3,6 +3,9 @@ components:
     Address:
       type: object
       properties:
+        id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
         street:
           type: string
           example: 123 Main St
@@ -27,5 +30,60 @@ components:
           example: Mahim
         completeAddress:
           type: string
-          example: 123 Main St, Mahim, Mumbai - 400001, India     
-          
+          example: 123 Main St, Mahim, Mumbai - 400001, India
+
+    AddressInput:
+      type: object
+      required: [street, city, state, pinCode]
+      properties:
+        street:
+          type: string
+          example: 123 Main St
+        city:
+          type: string
+          example: Mumbai
+        state:
+          type: string
+          example: Maharashtra
+        pinCode:
+          type: string
+          pattern: '^\d{6}$'
+          example: '400001'
+        addressType:
+          type: string
+          enum: [PERMANENT, CURRENT, BUSINESS, CORRESPONDENCE, OTHER]
+          default: CURRENT
+        country:
+          type: string
+          default: India
+        landmark:
+          type: string
+          example: Mahim
+      description: >
+        Used for both create and update — update currently requires the full
+        address (all required fields), not a partial patch.
+
+    AddressResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Address retrieved successfully
+        data:
+          $ref: '#/components/schemas/Address'
+
+    AddressErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        status:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: Address not found

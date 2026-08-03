@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model.js'
+import { User } from '../../core/models/index.js'
 
 export default {
     addUser: async (data) => {

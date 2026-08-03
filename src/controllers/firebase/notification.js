@@ -1,5 +1,4 @@
-import Vendor from '../../models/vendor.model.js';
-import { User } from '../../models/user.model.js';
+import { User, Vendor } from '../../core/models/index.js';
 import notificationService from '../../services/firebase-notification/notificationService.js';
 
 const sendNotificationToVendor = async (req, res) => {

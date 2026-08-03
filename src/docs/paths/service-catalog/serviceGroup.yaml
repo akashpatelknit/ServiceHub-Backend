@@ -1,0 +1,172 @@
+list:
+  get:
+    summary: List service groups
+    description: Public. Level 3 of the catalog hierarchy.
+    tags: [Catalog Service Groups]
+    parameters:
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20 }
+      - name: category
+        in: query
+        description: Filter by ancestor Category id.
+        schema: { type: string }
+      - name: subcategory
+        in: query
+        description: Filter by parent Subcategory id.
+        schema: { type: string }
+      - name: isActive
+        in: query
+        schema: { type: string, enum: ['true', 'false'] }
+    responses:
+      '200':
+        description: Paginated list of service groups
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupListResponse'
+
+  post:
+    summary: Create a service group
+    description: Admin only.
+    tags: [Catalog Service Groups]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupInput'
+    responses:
+      '201':
+        description: Service group created
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Parent subcategory not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+byId:
+  get:
+    summary: Get a service group by id
+    description: Public.
+    tags: [Catalog Service Groups]
+    parameters:
+      - name: serviceGroupId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Service group found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupResponse'
+      '404':
+        description: Service group not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  patch:
+    summary: Update a service group
+    description: Admin only. Partial update — at least one field required.
+    tags: [Catalog Service Groups]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: serviceGroupId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupUpdateInput'
+    responses:
+      '200':
+        description: Service group updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ServiceGroupResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Service group (or new parent subcategory) not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  delete:
+    summary: Delete a service group
+    description: Admin only. Fails with 409 if the service group still has services.
+    tags: [Catalog Service Groups]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: serviceGroupId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Service group deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiSuccessResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Service group not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '409':
+        description: Service group still has services
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'

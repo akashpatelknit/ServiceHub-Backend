@@ -7,7 +7,7 @@ import { v4 } from 'uuid';
 import { randomInt } from 'crypto';
 import jwt from 'jsonwebtoken';
 import dayjs from 'dayjs';
-import { User } from '../models/user.model.js';
+import { User } from '../core/models/index.js';
 import { ApiError } from './ApiError.js';
 
 export default {

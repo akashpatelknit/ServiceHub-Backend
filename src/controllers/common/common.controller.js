@@ -1,7 +1,6 @@
 import axios from 'axios';
 import Otp from '../../models/otp_email.model.js';
-import { User } from '../../models/user.model.js';
-import Vendor from '../../models/vendor.model.js';
+import { User, Vendor } from '../../core/models/index.js';
 import sendEmail from '../../services/otp/sendEmail.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 import {
   applyCoupon,
   createCoupon,

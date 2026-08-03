@@ -4,10 +4,8 @@ import { ApiResponse } from '../../utils/ApiResponse.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ApiError } from '../../utils/ApiError.js';
 import Wallet from '../../models/wallet.model.js';
-import { User } from '../../models/user.model.js';
 import Transaction from '../../models/transaction.model.js';
-import Vendor from '../../models/vendor.model.js';
-import { Admin } from '../../models/admin.model.js';
+import { User, Vendor, Admin } from '../../core/models/index.js';
 
 const createWallet = asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);

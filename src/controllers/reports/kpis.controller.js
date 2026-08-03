@@ -1,5 +1,4 @@
-import { User } from '../../models/user.model.js';
-import Vendor from '../../models/vendor.model.js';
+import { User, Vendor } from '../../core/models/index.js';
 import { Booking } from '../../models/booking.model.js';
 import { Rating } from '../../models/rating.model.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';

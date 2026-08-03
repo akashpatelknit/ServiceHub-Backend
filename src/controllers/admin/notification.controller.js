@@ -1,5 +1,5 @@
 import { Notification } from '../../models/notification.model.js'
-import { User } from '../../models/user.model.js'
+import { User } from '../../core/models/index.js'
 import { asyncHandler } from '../../utils/asyncHandler.js'
 
 export default {

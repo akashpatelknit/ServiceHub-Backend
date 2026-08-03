@@ -8,7 +8,7 @@ import {
   getCategoryById,
   updateCategory,
 } from '../../controllers/category/category.controller.js';
-import authMiddleware from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 
 const router = Router();
 

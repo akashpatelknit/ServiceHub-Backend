@@ -1,5 +1,5 @@
 import { socketio } from '../app'
-import Vendor from '../models/vendor.model'
+import { Vendor } from '../core/models/index.js'
 import Booking from '../models/order.model'
 
 socketio.on('connection', (socket) => {

@@ -1,0 +1,168 @@
+list:
+  get:
+    summary: List subcategories
+    description: Public. Level 2 of the catalog hierarchy.
+    tags: [Catalog Subcategories]
+    parameters:
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20 }
+      - name: category
+        in: query
+        description: Filter by parent Category id.
+        schema: { type: string }
+      - name: isActive
+        in: query
+        schema: { type: string, enum: ['true', 'false'] }
+    responses:
+      '200':
+        description: Paginated list of subcategories
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryListResponse'
+
+  post:
+    summary: Create a subcategory
+    description: Admin only.
+    tags: [Catalog Subcategories]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryInput'
+    responses:
+      '201':
+        description: Subcategory created
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Parent category not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+byId:
+  get:
+    summary: Get a subcategory by id
+    description: Public.
+    tags: [Catalog Subcategories]
+    parameters:
+      - name: subcategoryId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Subcategory found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryResponse'
+      '404':
+        description: Subcategory not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  patch:
+    summary: Update a subcategory
+    description: Admin only. Partial update — at least one field required.
+    tags: [Catalog Subcategories]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: subcategoryId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryUpdateInput'
+    responses:
+      '200':
+        description: Subcategory updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/SubcategoryResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Subcategory (or new parent category) not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  delete:
+    summary: Delete a subcategory
+    description: Admin only. Fails with 409 if the subcategory still has service groups.
+    tags: [Catalog Subcategories]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: subcategoryId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Subcategory deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiSuccessResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Subcategory not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '409':
+        description: Subcategory still has service groups
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'

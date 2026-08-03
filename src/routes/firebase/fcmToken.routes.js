@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerFcmToken, removeFcmToken } from '../../controllers/firebase/fcmToken.controller.js';
-import authMiddleware from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 
 const router = express.Router();
 

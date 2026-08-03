@@ -1,42 +1,37 @@
-register:
+signup:
   post:
-    summary: Register a new vendor
-    description: Create a new vendor account
-    tags:
-      - Vendor Authentication
+    summary: Create a vendor account (email/password)
+    tags: [Vendor Authentication]
     requestBody:
       required: true
       content:
         application/json:
           schema:
-            $ref: '../../schemas/auth.yaml#/RegisterInput'
+            $ref: '../../schemas/auth.yaml#/SignupInput'
     responses:
       '201':
-        description: Vendor registered successfully
+        description: Account created
         content:
           application/json:
             schema:
-              $ref: '../../schemas/auth.yaml#/AuthResponse'
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
       '400':
-        description: Invalid input
+        description: Validation failed
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: "Invalid input or vendor already exists"
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '409':
+        description: Account already exists
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
 
 login:
   post:
-    summary: Login vendor
-    description: Authenticate vendor and receive JWT token
-    tags:
-      - Vendor Authentication
+    summary: Log in a vendor
+    tags: [Vendor Authentication]
     requestBody:
       required: true
       content:
@@ -49,88 +44,128 @@ login:
         content:
           application/json:
             schema:
-              $ref: '../../schemas/auth.yaml#/AuthResponse'
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
       '401':
         description: Invalid credentials
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: "Invalid credentials"
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '403':
+        description: Account is blocked
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
 
-profile:
-  get:
-    summary: Get vendor profile
-    description: Retrieve authenticated vendor's profile
-    tags:
-      - Vendor Authentication
-    security:
-      - bearerAuth: []
+refresh:
+  post:
+    summary: Rotate an access/refresh token pair
+    tags: [Vendor Authentication]
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/RefreshTokenInput'
     responses:
       '200':
-        description: Profile retrieved successfully
+        description: New token pair issued
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                data:
-                  $ref: '../../schemas/auth.yaml#/User'
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
       '401':
-        description: Unauthorized
+        description: Refresh token missing, invalid, expired, or reused
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: "Unauthorized - Invalid or missing token"
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
 
 logout:
   post:
-    summary: Logout vendor
-    description: Invalidate the current session
-    tags:
-      - Vendor Authentication
+    summary: Log out (revokes the current access token)
+    tags: [Vendor Authentication]
     security:
       - bearerAuth: []
     responses:
       '200':
-        description: Logout successful
+        description: Logged out
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                message:
-                  type: string
-                  example: "Logged out successfully"
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
       '401':
-        description: Unauthorized
+        description: Access token missing, invalid, expired, or already revoked
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: false
-                message:
-                  type: string
-                  example: "Unauthorized"
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+forgotPassword:
+  post:
+    summary: Request a password reset token
+    tags: [Vendor Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ForgotPasswordInput'
+    responses:
+      '200':
+        description: Always 200 — does not reveal whether the email is registered
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+
+resetPassword:
+  post:
+    summary: Reset password using a reset token
+    tags: [Vendor Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ResetPasswordInput'
+    responses:
+      '200':
+        description: Password reset — new token pair issued
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/TokenPairResponse'
+      '400':
+        description: Invalid or expired reset token
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+changePassword:
+  patch:
+    summary: Change password while logged in
+    tags: [Vendor Authentication]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ChangePasswordInput'
+    responses:
+      '200':
+        description: Password changed — client must log in again
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+      '401':
+        description: Not authenticated, or oldPassword incorrect
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'

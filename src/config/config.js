@@ -20,16 +20,19 @@ export default {
   // Database
   DATABASE_URL: process.env.DATABASE_URL,
 
-  // Access Token
+  // Redis (auth token blacklist)
+  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+
+  // Access Token — fed straight into jwt.sign's `expiresIn` (accepts "15m" or a number of seconds)
   ACCESS_TOKEN: {
     SECRET: process.env.ACCESS_TOKEN_SECRET,
-    EXPIRY: 3600 * 24 * 10, // 10 days
+    EXPIRY: process.env.ACCESS_TOKEN_EXPIRY || '15m',
   },
 
   // Refresh Token
   REFRESH_TOKEN: {
     SECRET: process.env.REFRESH_TOKEN_SECRET,
-    EXPIRY: 3600 * 24 * 365, //
+    EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || '7d',
   },
 
   ACCOUNT_SID: process.env.ACCOUNT_SID,
@@ -76,4 +79,11 @@ export default {
   AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
   AWS_CLOUDFRONT_URL: process.env.AWS_CLOUDFRONT_URL,
   AWS_REGION: process.env.AWS_REGION,
+
+  // Cloudflare R2 (service-catalog media — presigned direct uploads)
+  R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+  R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
+  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
 };
