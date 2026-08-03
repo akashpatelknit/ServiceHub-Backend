@@ -261,9 +261,4 @@ export {
   testMobileOTP,
 };
 
-export const allowedOrigins = [
-  'http://localhost:5173',
-  'https://homekrew.vercel.app',
-  'https://admin.homekrew.in',
-  'https://homekrew-prod.vercel.app',
-];
+export const allowedOrigins = ['http://localhost:5173', 'https://servicehub-akashbuilds.vercel.app'];
