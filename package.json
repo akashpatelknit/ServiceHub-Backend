@@ -1,12 +1,13 @@
 {
-  "name": "deamandium-backend",
+  "name": "service-hub-backend",
   "version": "1.0.0",
-  "description": "Backend for Deamandium",
+  "description": "Backend for Service Hub",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --legacy-watch --import ./src/config/instrument.mjs src/index.js",
     "start": "cross-env NODE_ENV=production node --import ./src/config/instrument.mjs src/index.js",
+    "build": "node scripts/checkSyntax.mjs",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "firebase:emulators": "firebase emulators:start --only firestore,functions,database,auth,hosting,storage,pubsub"
   },
