@@ -1,0 +1,140 @@
+assignSubRole:
+  patch:
+    summary: Assign an admin's sub-role
+    description: Requires admin identity with ADMINS:UPDATE permission (SUPER_ADMIN by default — see the hardcoded permission map).
+    tags: [Admin Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: adminId
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/AssignAdminSubRoleInput'
+    responses:
+      '200':
+        description: Sub-role updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+      '400':
+        description: Validation failed (invalid adminId or subRole)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin, or sub-role lacks ADMINS:UPDATE permission
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: Admin not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+approveKyc:
+  post:
+    summary: Approve a vendor's KYC application
+    description: >
+      Requires admin identity with KYC:APPROVE permission (SUPER_ADMIN or OPS
+      by default). Blocked at the service layer unless the application's
+      status is exactly pending_verification.
+    tags: [Admin Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: vendorId
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/ApproveKycInput'
+    responses:
+      '200':
+        description: KYC approved (status -> verified)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/KycResponse'
+      '403':
+        description: Not an admin, or sub-role lacks KYC:APPROVE permission
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: KYC record not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '409':
+        description: KYC is not in pending_verification — cannot approve yet
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+rejectKyc:
+  post:
+    summary: Reject a vendor's KYC application
+    description: >
+      Requires admin identity with KYC:REJECT permission (SUPER_ADMIN or OPS
+      by default). Blocked at the service layer unless the application's
+      status is exactly pending_verification.
+    tags: [Admin Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: vendorId
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/auth.yaml#/RejectKycInput'
+    responses:
+      '200':
+        description: KYC rejected (status -> rejected)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/KycResponse'
+      '403':
+        description: Not an admin, or sub-role lacks KYC:REJECT permission
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: KYC record not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '409':
+        description: KYC is not in pending_verification — cannot reject yet
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'

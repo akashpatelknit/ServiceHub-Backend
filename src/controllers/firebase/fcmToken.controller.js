@@ -1,5 +1,4 @@
-import { User } from '../../models/user.model.js';
-import Vendor from '../../models/vendor.model.js';
+import { User, Vendor } from '../../core/models/index.js';
 
 const registerFcmToken = async (req, res) => {
   try {

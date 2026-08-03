@@ -1,0 +1,164 @@
+list:
+  get:
+    summary: List add-ons
+    description: Public. Filter by service or serviceGroup to keep add-ons contextually relevant.
+    tags: [Catalog Add-ons]
+    parameters:
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20 }
+      - name: service
+        in: query
+        schema: { type: string }
+      - name: serviceGroup
+        in: query
+        schema: { type: string }
+      - name: isActive
+        in: query
+        schema: { type: string, enum: ['true', 'false'] }
+    responses:
+      '200':
+        description: Paginated list of add-ons
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/AddOnListResponse'
+
+  post:
+    summary: Create an add-on
+    description: Admin only. No vendor request/approval — add-ons inherit availability from the vendor's approved VendorService for the linked Service.
+    tags: [Catalog Add-ons]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/AddOnInput'
+    responses:
+      '201':
+        description: Add-on created
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/AddOnResponse'
+      '400':
+        description: Validation failed (including not-exactly-one-of service/serviceGroup)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Linked service or service group not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+byId:
+  get:
+    summary: Get an add-on by id
+    description: Public.
+    tags: [Catalog Add-ons]
+    parameters:
+      - name: addOnId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Add-on found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/AddOnResponse'
+      '404':
+        description: Add-on not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  patch:
+    summary: Update an add-on
+    description: Admin only. Partial update — at least one field required; still exactly one of service/serviceGroup if either is sent.
+    tags: [Catalog Add-ons]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addOnId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/AddOnUpdateInput'
+    responses:
+      '200':
+        description: Add-on updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/AddOnResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Add-on (or linked service/service group) not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  delete:
+    summary: Delete an add-on
+    description: Admin only.
+    tags: [Catalog Add-ons]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addOnId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Add-on deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiSuccessResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Add-on not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'

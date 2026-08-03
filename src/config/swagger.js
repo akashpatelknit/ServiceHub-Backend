@@ -35,7 +35,16 @@ function resolveRefs(obj, basePath, visited = new Set()) {
       let resolved = parsed;
 
       if (anchor) {
-        for (const part of anchor.split('/').filter(Boolean)) {
+        const parts = anchor.split('/').filter(Boolean);
+
+        // This codebase's convention is the shorthand `file.yaml#/SchemaName`,
+        // but schema files are full OpenAPI documents (`components.schemas.SchemaName`).
+        // Jump into components.schemas first unless the anchor already spells that out.
+        if (parts[0] !== 'components' && parsed?.components?.schemas) {
+          resolved = parsed.components.schemas;
+        }
+
+        for (const part of parts) {
           resolved = resolved?.[part];
           if (!resolved) {
             return obj;

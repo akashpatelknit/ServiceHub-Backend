@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 import {
   addRating,
   getBookingRating,

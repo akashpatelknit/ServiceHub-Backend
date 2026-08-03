@@ -30,7 +30,7 @@ class SMSService {
 
       const response = await axios.get(`${this.smsConfig.baseUrl}?${params}`, {
         headers: {
-          'User-Agent': 'Homekrew-OTP-Service/1.0',
+          'User-Agent': 'ServiceHub-OTP-Service/1.0',
         },
       });
 

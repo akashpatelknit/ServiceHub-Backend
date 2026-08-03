@@ -4,7 +4,7 @@ import { Category } from '../../models/category.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import Vendor from '../../models/vendor.model.js';
+import { Vendor } from '../../core/models/index.js';
 import { ServiceTemplate } from '../../models/serviceTemplateSchema.js';
 import { VendorService } from '../../models/vendorServiceSchema.js';
 import { vendorSelect, vendorSelectSmall } from '../../config/populate/vendorPopulate.js';

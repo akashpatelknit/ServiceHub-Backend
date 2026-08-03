@@ -11,7 +11,7 @@ import {
   getUserTransactions,
   getAllTransactions,
 } from '../../controllers/payment/transaction.controller.js';
-import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 
 import {
   checkKYCPaymentEligibility,

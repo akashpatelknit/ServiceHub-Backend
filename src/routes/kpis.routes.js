@@ -1,7 +1,7 @@
 import express from 'express';
 import { getPlatformKPIs, getKPIsSummary } from '../controllers/reports/kpis.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
-import { checkPermission } from '../middlewares/checkPermission.js';
+import { authenticate as verifyJWT } from '../features/auth/middlewares/authenticate.js';
+import { checkPermission } from '../features/auth/middlewares/checkPermission.js';
 
 const router = express.Router();
 

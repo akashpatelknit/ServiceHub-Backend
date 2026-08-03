@@ -144,7 +144,7 @@ class OTPService {
       console.log('🔐 Generated OTP:', otp);
       console.log('🔐 Hashed OTP (first 8):', hashedOTP.substring(0, 8) + '...');
 
-      const message = `Your Homekrew OTP is ${otp}. Use this code to verify your number. Do not share it with anyone.`;
+      const message = `Your ServiceHub OTP is ${otp}. Use this code to verify your number. Do not share it with anyone.`;
 
       console.log('📨 Sending SMS to:', cleanPhoneNumber);
       const smsResult = await smsService.sendSMS(cleanPhoneNumber, message);

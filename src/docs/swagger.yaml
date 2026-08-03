@@ -20,56 +20,156 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
-  schemas:
-    # Auth Schemas
-    User:
-      $ref: './schemas/auth.yaml#/User'
-    RegisterInput:
-      $ref: './schemas/auth.yaml#/RegisterInput'
-    LoginInput:
-      $ref: './schemas/auth.yaml#/LoginInput'
-    AuthResponse:
-      $ref: './schemas/auth.yaml#/AuthResponse'
-    
-    # Address Schemas
-    Address:
-      $ref: './schemas/address.yaml#/Address'
+  # Schemas are auto-loaded from every file under ./schemas/*.yaml by
+  # config/swagger.js — no need to $ref them individually here.
+  schemas: {}
 
 tags:
-  - name: Admin Authentication
-    description: Admin authentication endpoints
   - name: User Authentication
-    description: User authentication endpoints
+    description: Signup, login, tokens, and password management for the User identity
   - name: Vendor Authentication
-    description: Vendor authentication endpoints
+    description: Signup, login, tokens, and password management for the Vendor identity
+  - name: Admin Authentication
+    description: Login, tokens, and password management for the Admin identity (no public signup)
+  - name: Vendor KYC
+    description: Vendor-only multi-step, payment-gated KYC state machine
+  - name: Admin Management
+    description: Admin sub-role assignment and KYC review — permission-gated by ADMIN_SUB_ROLE_PERMISSIONS
+  - name: Address
+    description: Address CRUD — used to get an address id to reference from KYC step 1
+  - name: Catalog Categories
+    description: Level 1 of the service catalog hierarchy. Public reads, admin-only writes.
+  - name: Catalog Subcategories
+    description: Level 2 of the service catalog hierarchy. Public reads, admin-only writes.
+  - name: Catalog Service Groups
+    description: Level 3 of the service catalog hierarchy. Public reads, admin-only writes.
+  - name: Catalog Services
+    description: Level 4 (leaf) of the service catalog hierarchy. Public reads, admin-only writes.
+  - name: Catalog Add-ons
+    description: Booking add-ons linked to a Service or ServiceGroup. Public reads, admin-only writes.
+  - name: Vendor Service Requests
+    description: Vendor-facing endpoints to browse and request catalog services.
+  - name: Admin — Vendor Service Requests
+    description: Admin review/approval of vendor service requests.
+  - name: Catalog Media
+    description: Presigned direct-to-R2 image upload for catalog entries.
 
 paths:
-  # Admin Auth Routes
-  /auth/admin/register:
-    $ref: './paths/auth/admin.yaml#/register'
-  /auth/admin/login:
-    $ref: './paths/auth/admin.yaml#/login'
-  /auth/admin/profile:
-    $ref: './paths/auth/admin.yaml#/profile'
-  /auth/admin/logout:
-    $ref: './paths/auth/admin.yaml#/logout'
-
   # User Auth Routes
-  /auth/user/register:
-    $ref: './paths/auth/user.yaml#/register'
+  /auth/user/signup:
+    $ref: './paths/auth/user.yaml#/signup'
   /auth/user/login:
     $ref: './paths/auth/user.yaml#/login'
-  /auth/user/profile:
-    $ref: './paths/auth/user.yaml#/profile'
+  /auth/user/refresh:
+    $ref: './paths/auth/user.yaml#/refresh'
   /auth/user/logout:
     $ref: './paths/auth/user.yaml#/logout'
+  /auth/user/forgot-password:
+    $ref: './paths/auth/user.yaml#/forgotPassword'
+  /auth/user/reset-password:
+    $ref: './paths/auth/user.yaml#/resetPassword'
+  /auth/user/change-password:
+    $ref: './paths/auth/user.yaml#/changePassword'
 
   # Vendor Auth Routes
-  /auth/vendor/register:
-    $ref: './paths/auth/vendor.yaml#/register'
+  /auth/vendor/signup:
+    $ref: './paths/auth/vendor.yaml#/signup'
   /auth/vendor/login:
     $ref: './paths/auth/vendor.yaml#/login'
-  /auth/vendor/profile:
-    $ref: './paths/auth/vendor.yaml#/profile'
+  /auth/vendor/refresh:
+    $ref: './paths/auth/vendor.yaml#/refresh'
   /auth/vendor/logout:
     $ref: './paths/auth/vendor.yaml#/logout'
+  /auth/vendor/forgot-password:
+    $ref: './paths/auth/vendor.yaml#/forgotPassword'
+  /auth/vendor/reset-password:
+    $ref: './paths/auth/vendor.yaml#/resetPassword'
+  /auth/vendor/change-password:
+    $ref: './paths/auth/vendor.yaml#/changePassword'
+
+  # Admin Auth Routes (no signup — see /admin/{adminId}/sub-role)
+  /auth/admin/login:
+    $ref: './paths/auth/admin.yaml#/login'
+  /auth/admin/refresh:
+    $ref: './paths/auth/admin.yaml#/refresh'
+  /auth/admin/logout:
+    $ref: './paths/auth/admin.yaml#/logout'
+  /auth/admin/forgot-password:
+    $ref: './paths/auth/admin.yaml#/forgotPassword'
+  /auth/admin/reset-password:
+    $ref: './paths/auth/admin.yaml#/resetPassword'
+  /auth/admin/change-password:
+    $ref: './paths/auth/admin.yaml#/changePassword'
+
+  # Vendor KYC Routes
+  /vendor/kyc:
+    $ref: './paths/auth/kyc.yaml#/getStatus'
+  /vendor/kyc/steps/info:
+    $ref: './paths/auth/kyc.yaml#/submitInfo'
+  /vendor/kyc/steps/documents:
+    $ref: './paths/auth/kyc.yaml#/submitDocuments'
+  /vendor/kyc/steps/bank-details:
+    $ref: './paths/auth/kyc.yaml#/submitBankDetails'
+  /vendor/kyc/payment/initiate:
+    $ref: './paths/auth/kyc.yaml#/initiatePayment'
+  /vendor/kyc/payment/verify:
+    $ref: './paths/auth/kyc.yaml#/verifyPayment'
+
+  # Admin Management Routes
+  /admin/{adminId}/sub-role:
+    $ref: './paths/auth/adminManagement.yaml#/assignSubRole'
+  /admin/kyc/{vendorId}/approve:
+    $ref: './paths/auth/adminManagement.yaml#/approveKyc'
+  /admin/kyc/{vendorId}/reject:
+    $ref: './paths/auth/adminManagement.yaml#/rejectKyc'
+
+  # Address Routes
+  /addresses:
+    $ref: './paths/address.yaml#/create'
+  /addresses/{addressId}:
+    $ref: './paths/address.yaml#/byId'
+
+  # Service Catalog — Categories (level 1)
+  /service-catalog/categories:
+    $ref: './paths/service-catalog/category.yaml#/list'
+  /service-catalog/categories/{categoryId}:
+    $ref: './paths/service-catalog/category.yaml#/byId'
+
+  # Service Catalog — Subcategories (level 2)
+  /service-catalog/subcategories:
+    $ref: './paths/service-catalog/subcategory.yaml#/list'
+  /service-catalog/subcategories/{subcategoryId}:
+    $ref: './paths/service-catalog/subcategory.yaml#/byId'
+
+  # Service Catalog — Service Groups (level 3)
+  /service-catalog/service-groups:
+    $ref: './paths/service-catalog/serviceGroup.yaml#/list'
+  /service-catalog/service-groups/{serviceGroupId}:
+    $ref: './paths/service-catalog/serviceGroup.yaml#/byId'
+
+  # Service Catalog — Services (level 4)
+  /service-catalog/services:
+    $ref: './paths/service-catalog/service.yaml#/list'
+  /service-catalog/services/{serviceId}:
+    $ref: './paths/service-catalog/service.yaml#/byId'
+
+  # Service Catalog — Add-ons
+  /service-catalog/add-ons:
+    $ref: './paths/service-catalog/addOn.yaml#/list'
+  /service-catalog/add-ons/{addOnId}:
+    $ref: './paths/service-catalog/addOn.yaml#/byId'
+
+  # Service Catalog — Vendor Service Requests
+  # (POST = vendor request, GET = admin list — same URL, resolved as one path item)
+  /service-catalog/vendor-services:
+    $ref: './paths/service-catalog/vendorService.yaml#/collection'
+  /service-catalog/vendor-services/me:
+    $ref: './paths/service-catalog/vendorService.yaml#/listMine'
+  /service-catalog/vendor-services/{vendorServiceId}/approve:
+    $ref: './paths/service-catalog/vendorService.yaml#/approve'
+  /service-catalog/vendor-services/{vendorServiceId}/reject:
+    $ref: './paths/service-catalog/vendorService.yaml#/reject'
+
+  # Service Catalog — Media (presigned R2 upload)
+  /service-catalog/media/presigned-url:
+    $ref: './paths/service-catalog/media.yaml#/presignedUploadUrl'

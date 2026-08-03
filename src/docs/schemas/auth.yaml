@@ -1,96 +1,341 @@
 components:
   schemas:
-    User:
+    # ---------- shared response envelopes ----------
+    ApiSuccessResponse:
       type: object
       properties:
-        id:
-          type: string
-          example: "507f1f77bcf86cd799439011"
-        name:
-          type: string
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        phone:
-          type: string
-          example: "+1234567890"
-        role:
-          type: string
-          enum: [user, vendor, admin]
-          example: "user"
-        createdAt:
-          type: string
-          format: date-time
-
-    RegisterInput:
-      type: object
-      required:
-        - name
-        - email
-        - password
-      properties:
-        name:
-          type: string
-          minLength: 2
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        password:
-          type: string
-          minLength: 6
-          example: "password123"
-        phone:
-          type: string
-          example: "+1234567890"
-
-    LoginInput:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-          example: "john@example.com"
-        password:
-          type: string
-          example: "password123"
-
-    AuthResponse:
-      type: object
-      properties:
+        statusCode:
+          type: integer
+          example: 200
         success:
           type: boolean
           example: true
         message:
           type: string
-          example: "Login successful"
+          example: "Success"
         data:
           type: object
-          properties:
-            token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            refreshToken:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            user:
-              $ref: '#/components/schemas/User'
+          nullable: true
 
-    ErrorResponse:
+    ApiErrorResponse:
       type: object
+      description: Shape produced by the global error handler — note this is `status`, not `statusCode`, and there's no `data` field (unlike ApiSuccessResponse).
       properties:
         success:
           type: boolean
           example: false
+        status:
+          type: integer
+          example: 400
         message:
           type: string
-          example: "An error occurred"
-        error:
+          example: "Validation failed"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "body.email"
+              message:
+                type: string
+                example: "Invalid email format"
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
           type: string
-          example: "Detailed error message"
+          description: JWT, ~15 minute expiry
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          description: JWT, ~7 day expiry
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    TokenPairResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenPair'
+
+    # ---------- signup / login / tokens ----------
+    SignupInput:
+      type: object
+      required:
+        - password
+      properties:
+        provider:
+          type: string
+          enum: [email]
+          default: email
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phoneNumber:
+          type: string
+          example: "+911234567890"
+        password:
+          type: string
+          minLength: 8
+          example: "correct horse battery"
+      description: Either email or phoneNumber is required.
+
+    LoginInput:
+      type: object
+      required:
+        - identifier
+        - password
+      properties:
+        provider:
+          type: string
+          enum: [email, mobile_otp, google, github, linkedin]
+          default: email
+          description: Resolved at runtime via the strategy registry. Non-email providers are not wired to a real backend yet and return 501.
+        identifier:
+          type: string
+          description: Email or phone number.
+          example: "john@example.com"
+        password:
+          type: string
+          example: "correct horse battery"
+
+    RefreshTokenInput:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Optional if sent as an httpOnly cookie instead.
+
+    ForgotPasswordInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordInput:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+          description: Raw reset token (emailed to the user, not the hashed value stored server-side).
+        newPassword:
+          type: string
+          minLength: 8
+
+    ChangePasswordInput:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          description: Must differ from oldPassword.
+
+    # ---------- KYC ----------
+    KycInfoInput:
+      type: object
+      required: [firstName, lastName, dob, email, phoneNumber]
+      properties:
+        firstName:
+          type: string
+          minLength: 2
+        lastName:
+          type: string
+          minLength: 2
+        middleName:
+          type: string
+        dob:
+          type: string
+          format: date
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+        occupation:
+          type: string
+        address:
+          type: string
+          description: Address document id
+
+    KycDocument:
+      type: object
+      required: [type, number, frontImage]
+      properties:
+        type:
+          type: string
+          enum: [passport, driving_license, national_id, voter_id, aadhaar]
+        number:
+          type: string
+        frontImage:
+          type: string
+          format: uri
+        backImage:
+          type: string
+          format: uri
+
+    KycDocumentsInput:
+      type: object
+      required: [primaryDocument, selfieImage]
+      properties:
+        primaryDocument:
+          $ref: '#/components/schemas/KycDocument'
+        secondaryDocument:
+          $ref: '#/components/schemas/KycDocument'
+        selfieImage:
+          type: string
+          format: uri
+
+    KycBankDetailsInput:
+      type: object
+      required: [accountHolderName, accountNumber, ifscCode]
+      properties:
+        accountHolderName:
+          type: string
+        accountNumber:
+          type: string
+          pattern: '^[0-9]{9,18}$'
+        ifscCode:
+          type: string
+          pattern: '^[A-Z]{4}0[A-Z0-9]{6}$'
+        bankName:
+          type: string
+        branchName:
+          type: string
+
+    KycPaymentInitInput:
+      type: object
+      properties:
+        currency:
+          type: string
+          enum: [INR]
+          default: INR
+
+    KycPaymentOrder:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        amount:
+          type: number
+        razorpayOrder:
+          type: object
+          description: Raw Razorpay order object.
+        razorpayKeyId:
+          type: string
+
+    KycPaymentVerifyInput:
+      type: object
+      required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
+      properties:
+        razorpay_order_id:
+          type: string
+        razorpay_payment_id:
+          type: string
+        razorpay_signature:
+          type: string
+
+    Kyc:
+      type: object
+      properties:
+        id:
+          type: string
+        vendor:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - info_submitted
+            - documents_submitted
+            - bank_details_submitted
+            - payment_completed
+            - pending_verification
+            - verified
+            - rejected
+        info:
+          type: object
+          nullable: true
+        documents:
+          type: object
+          nullable: true
+        bankDetails:
+          type: object
+          nullable: true
+        paymentRef:
+          type: string
+          nullable: true
+        reviewedBy:
+          type: string
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        reviewComments:
+          type: string
+          nullable: true
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              at:
+                type: string
+                format: date-time
+
+    KycResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Kyc'
+
+    # ---------- admin ----------
+    AssignAdminSubRoleInput:
+      type: object
+      required: [subRole]
+      properties:
+        subRole:
+          type: string
+          enum: [SUPER_ADMIN, SUPPORT, FINANCE, OPS]
+
+    ApproveKycInput:
+      type: object
+      properties:
+        comments:
+          type: string
+          maxLength: 1000
+
+    RejectKycInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          enum: [other, document_not_verified, incomplete, fraudulent]
+        comments:
+          type: string
+          maxLength: 1000

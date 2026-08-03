@@ -1,6 +1,4 @@
-import { Admin } from '../../models/admin.model.js'
-import { User } from '../../models/user.model.js'
-import Vendor from '../../models/vendor.model.js'
+import { Admin, User, Vendor } from '../../core/models/index.js'
 
 export const checkUserExists = async (userId, role) => {
     try {

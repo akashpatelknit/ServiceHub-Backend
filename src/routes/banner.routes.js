@@ -2,7 +2,7 @@ import express from 'express';
 const router = express.Router();
 
 import { bannerController } from '../controllers/banner/banner.controller.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../features/auth/middlewares/authenticate.js';
 
 router.route('/active').get(bannerController.getActiveBanners);
 router.route('/').get(bannerController.getAllBanners);

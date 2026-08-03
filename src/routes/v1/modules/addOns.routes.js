@@ -9,7 +9,7 @@ import {
   getAddOnsByServiceTemplate,
   assignAddOnsToServiceTemplate,
 } from '../../../controllers/addOns/addOns.controller.js';
-import authMiddleware from '../../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../../features/auth/middlewares/authenticate.js';
 
 const router = express.Router();
 

@@ -1,0 +1,36 @@
+presignedUploadUrl:
+  post:
+    summary: Get a presigned upload URL
+    description: >
+      Admin only. Returns a short-lived (60s) presigned PUT URL for uploading an image
+      directly to Cloudflare R2 — the file itself never passes through this server.
+      Upload the file to `uploadUrl`, then send the returned `{key, url}` back as the
+      `image`/`images` field when creating or updating a catalog entry.
+    tags: [Catalog Media]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/PresignedUploadUrlInput'
+    responses:
+      '200':
+        description: Presigned upload URL generated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/PresignedUploadUrlResponse'
+      '400':
+        description: Invalid entity, file type, or file too large
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'

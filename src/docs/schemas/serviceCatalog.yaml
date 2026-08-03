@@ -1,0 +1,696 @@
+components:
+  schemas:
+    # ---------- shared envelopes ----------
+    ApiSuccessResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 200
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Success
+        data:
+          type: object
+          nullable: true
+
+    ApiErrorResponse:
+      type: object
+      description: Shape produced by the global error handler — `status`, not `statusCode`, and no `data` field.
+      properties:
+        success:
+          type: boolean
+          example: false
+        status:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: body.name
+              message:
+                type: string
+                example: Required
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+
+    Image:
+      type: object
+      properties:
+        key:
+          type: string
+          description: R2 object key — used to delete/replace the object later.
+          example: service-catalog/services/6f2f6f2e-....jpg
+        url:
+          type: string
+          description: Public URL served to clients.
+          example: https://media.servicehub.com/service-catalog/services/6f2f6f2e-....jpg
+
+    ImageInput:
+      type: object
+      required: [key, url]
+      properties:
+        key:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    # ---------- media (presigned upload) ----------
+    PresignedUploadUrlInput:
+      type: object
+      required: [entity, fileType, fileSize]
+      properties:
+        entity:
+          type: string
+          enum: [category, subcategory, serviceGroup, service, addOn]
+        fileType:
+          type: string
+          enum: [image/jpeg, image/png, image/webp]
+        fileSize:
+          type: integer
+          description: Bytes. Max 5MB.
+          example: 204800
+
+    PresignedUploadUrlResult:
+      type: object
+      properties:
+        uploadUrl:
+          type: string
+          description: Short-lived (60s) presigned PUT URL — upload the file directly to R2 with this.
+        key:
+          type: string
+        url:
+          type: string
+          description: The public URL to store back on the catalog entry once the upload completes.
+        expiresIn:
+          type: integer
+          example: 60
+
+    PresignedUploadUrlResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/PresignedUploadUrlResult'
+
+    # ---------- category (level 1) ----------
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60f7c2b5e1b8f8a5c8e4d123
+        name:
+          type: string
+          example: AC & Appliance Repair
+        slug:
+          type: string
+          example: ac-appliance-repair
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/Image'
+        displayType:
+          type: string
+          enum: [navigate, modal]
+          default: navigate
+          description: >-
+            'modal' opens a picker of this category's subcategories on click (falls
+            back to 'navigate' client-side if hasChildren is false); 'navigate' routes
+            straight to the category detail page.
+        hasChildren:
+          type: boolean
+          description: Computed — whether at least one active Subcategory exists under this category. Only present in list responses.
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: AC & Appliance Repair
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/ImageInput'
+        displayType:
+          type: string
+          enum: [navigate, modal]
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+
+    CategoryUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/CategoryInput'
+      description: All fields optional — at least one must be provided.
+
+    CategoryResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Category'
+
+    CategoryListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Category'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+
+    # ---------- subcategory (level 2) ----------
+    Subcategory:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          example: AC
+        slug:
+          type: string
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/Image'
+        category:
+          type: string
+          description: Parent Category id.
+        displayType:
+          type: string
+          enum: [navigate, modal]
+          default: navigate
+          description: >-
+            'modal' opens a picker of this subcategory's service groups on click (falls
+            back to 'navigate' client-side if hasChildren is false); 'navigate' routes
+            straight to the subcategory detail page.
+        hasChildren:
+          type: boolean
+          description: Computed — whether at least one active ServiceGroup exists under this subcategory. Only present in list responses.
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SubcategoryInput:
+      type: object
+      required: [name, category]
+      properties:
+        name:
+          type: string
+          example: AC
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/ImageInput'
+        category:
+          type: string
+          description: Parent Category id.
+        displayType:
+          type: string
+          enum: [navigate, modal]
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+
+    SubcategoryUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/SubcategoryInput'
+      description: All fields optional — at least one must be provided.
+
+    SubcategoryResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Subcategory'
+
+    SubcategoryListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Subcategory'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+
+    # ---------- service group (level 3) ----------
+    ServiceGroup:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          example: Super saver packages
+        slug:
+          type: string
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/Image'
+        subcategory:
+          type: string
+          description: Parent Subcategory id.
+        category:
+          type: string
+          description: Denormalized ancestor Category id (derived from subcategory).
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ServiceGroupInput:
+      type: object
+      required: [name, subcategory]
+      properties:
+        name:
+          type: string
+          example: Super saver packages
+        description:
+          type: string
+        image:
+          $ref: '#/components/schemas/ImageInput'
+        subcategory:
+          type: string
+          description: Parent Subcategory id — category is derived from it.
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+
+    ServiceGroupUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/ServiceGroupInput'
+      description: All fields optional — at least one must be provided.
+
+    ServiceGroupResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ServiceGroup'
+
+    ServiceGroupListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ServiceGroup'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+
+    # ---------- service (level 4, leaf) ----------
+    Rating:
+      type: object
+      properties:
+        average:
+          type: number
+          example: 4.6
+        count:
+          type: integer
+          example: 128
+
+    Service:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          example: Foam-jet service (2 ACs)
+        slug:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          description: Fixed price, set only by admin.
+          example: 999
+        mrp:
+          type: number
+          description: Optional maximum retail price, shown struck through to display a discount off `price`.
+          example: 1299
+        durationMins:
+          type: integer
+          description: Minutes.
+          example: 90
+        bullets:
+          type: array
+          items:
+            type: string
+          description: Short marketing bullets shown on the service card.
+          example: ['Includes foam-jet cleaning', '45-day warranty']
+        unitPriceLabel:
+          type: string
+          description: Optional per-unit price label for services billed per item.
+          example: ₹599 per AC
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        rating:
+          $ref: '#/components/schemas/Rating'
+        serviceGroup:
+          type: string
+          description: Parent ServiceGroup id.
+        subcategory:
+          type: string
+          description: Denormalized ancestor Subcategory id.
+        category:
+          type: string
+          description: Denormalized ancestor Category id.
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ServiceInput:
+      type: object
+      required: [name, price, durationMins, serviceGroup]
+      properties:
+        name:
+          type: string
+          example: Foam-jet service (2 ACs)
+        description:
+          type: string
+        price:
+          type: number
+          example: 999
+        mrp:
+          type: number
+          example: 1299
+        durationMins:
+          type: integer
+          description: Minutes.
+          example: 90
+        bullets:
+          type: array
+          items:
+            type: string
+          example: ['Includes foam-jet cleaning', '45-day warranty']
+        unitPriceLabel:
+          type: string
+          example: ₹599 per AC
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageInput'
+        serviceGroup:
+          type: string
+          description: Parent ServiceGroup id — subcategory/category are derived from it.
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+
+    ServiceUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/ServiceInput'
+      description: All fields optional — at least one must be provided.
+
+    ServiceResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Service'
+
+    ServiceListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Service'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+
+    # ---------- add-on ----------
+    AddOn:
+      type: object
+      description: Linked to exactly one of `service` or `serviceGroup`.
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          example: Anti-rust coating
+        description:
+          type: string
+        price:
+          type: number
+          example: 149
+        image:
+          $ref: '#/components/schemas/Image'
+        service:
+          type: string
+          nullable: true
+        serviceGroup:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AddOnInput:
+      type: object
+      description: Provide exactly one of `service` or `serviceGroup`.
+      required: [name, price]
+      properties:
+        name:
+          type: string
+          example: Anti-rust coating
+        description:
+          type: string
+        price:
+          type: number
+          example: 149
+        image:
+          $ref: '#/components/schemas/ImageInput'
+        service:
+          type: string
+        serviceGroup:
+          type: string
+        isActive:
+          type: boolean
+
+    AddOnUpdateInput:
+      allOf:
+        - $ref: '#/components/schemas/AddOnInput'
+      description: All fields optional — at least one must be provided; still exactly one of service/serviceGroup if either is sent.
+
+    AddOnResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AddOn'
+
+    AddOnListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AddOn'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer
+
+    # ---------- vendor service (request/approval join entity) ----------
+    VendorService:
+      type: object
+      properties:
+        _id:
+          type: string
+        vendor:
+          type: string
+          description: Vendor id (core/models/vendor.model.js).
+        service:
+          type: string
+          description: Requested Service id.
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        requestedAt:
+          type: string
+          format: date-time
+        reviewedBy:
+          type: string
+          nullable: true
+          description: Admin id who approved/rejected.
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    VendorServiceRequestInput:
+      type: object
+      required: [service]
+      properties:
+        service:
+          type: string
+          description: Service id the vendor wants to offer.
+
+    VendorServiceRejectInput:
+      type: object
+      required: [rejectionReason]
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 3
+          maxLength: 500
+
+    VendorServiceResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/VendorService'
+
+    VendorServiceListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/VendorService'
+                total:
+                  type: integer
+                page:
+                  type: integer
+                limit:
+                  type: integer

@@ -1,6 +1,6 @@
 import { STATUS } from '../../constants/constants.js';
 import { Vendor } from '../../models/index.js';
-import { addressService } from '../../services/address/address.command.service.js';
+import { addressService } from '../../features/address/services/address.service.js';
 import { asyncHandler, ApiError } from '../../utils/index.js';
 
 export const addProductDeliveryAddress = asyncHandler(async (req, res) => {

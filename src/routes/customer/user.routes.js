@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticateUser, verifyOtp } from '../../controllers/customer/auth.controller.js';
-import authMiddleware from '../../middlewares/auth.middleware.js';
+import { authenticate as authMiddleware } from '../../features/auth/middlewares/authenticate.js';
 import {
   addUserAddress,
   deleteUser,

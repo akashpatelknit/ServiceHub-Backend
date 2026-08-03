@@ -5,13 +5,12 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import axios from 'axios';
 import * as Sentry from '@sentry/node';
-import routes from './routes/v1/index.js';
+import router from './routes/v1/index.js';
 import { corsConfig } from './config/cors.js';
 import { initializeSocket } from './sockets/socket.config.js';
 import httpResponse from './utils/httpResponse.js';
 import quicker from './utils/quicker.js';
 import { imageKitAuthenticate } from './config/imagekit.js';
-import router from './routes/v1/index.js';
 import globalErrorHandler from './utils/globalErrorHandler.js';
 import { requestLogger } from './middlewares/requestLogger.js';
 import { bookingNotificationService } from './services/booking/booking.notification.service.js';
@@ -114,7 +113,7 @@ app.get('/debug-sentry', function mainHandler(req, res) {
 //   return res.status(200).json({ success: true });
 // });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/api/v1', router);
+app.use('/api', router);
 
 // Global Error Handler
 app.use(Sentry.expressErrorHandler());

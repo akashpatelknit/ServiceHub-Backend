@@ -1,15 +1,12 @@
-import { User } from './user.model.js';
+import { User, Vendor, Admin } from '../core/models/index.js';
+import { Address } from '../features/address/models/address.model.js';
 import { BankAccount } from './bankAccount.model.js';
-import { Admin } from './admin.model.js';
-import VendorKYC from './vendor.kyc.modal.js';
 import Transaction from './transaction.model.js';
 import Wallet from './wallet.model.js';
 import { VendorService } from './vendorServiceSchema.js';
 import { ServiceTemplate } from './serviceTemplateSchema.js';
 import Order from './order.model.js';
-import { Address } from './address.model.js';
 import { Booking } from './booking.model.js';
-import Vendor from './vendor.model.js';
 import { Product } from './product.model.js';
 import { Category } from './category.model.js';
 import { Membership } from './membership.model.js';
@@ -22,12 +19,14 @@ import { Service } from './service.model.js';
 import { Coupon } from './coupon.model.js';
 import { CalculatorLead } from './calculatorLead.model.js';
 
+// User/Vendor/Admin live in core/models/ (see features/auth); Address lives
+// in features/address/models/. KYC moved entirely to
+// features/auth/models/kyc.model.js — no more VendorKYC here.
 export {
   User,
   BankAccount,
   Admin,
   Vendor,
-  VendorKYC,
   Transaction,
   Wallet,
   Booking,

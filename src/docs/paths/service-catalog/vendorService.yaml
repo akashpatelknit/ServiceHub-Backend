@@ -1,0 +1,199 @@
+# Both request (vendor) and list (admin) live at the same URL — POST vs GET — so they
+# have to be resolved as one combined path item rather than two separate $refs.
+collection:
+  post:
+    summary: Request to offer a service
+    description: >
+      Vendor only. Creates a pending VendorService record joining the vendor to the
+      catalog Service — the vendor cannot set price, edit the service, or go live
+      without admin approval. Re-requesting after a rejection resets the same record
+      back to pending.
+    tags: [Vendor Service Requests]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceRequestInput'
+    responses:
+      '201':
+        description: Request created (or reset to pending)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not a vendor
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Service not found or inactive
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '409':
+        description: Vendor already has a pending or approved request for this service
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+  get:
+    summary: View vendor service requests
+    description: Admin only. Filter by status (e.g. `?status=pending`) to review pending requests.
+    tags: [Admin — Vendor Service Requests]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20 }
+      - name: status
+        in: query
+        schema: { type: string, enum: [pending, approved, rejected] }
+    responses:
+      '200':
+        description: Paginated list of vendor service requests
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceListResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+listMine:
+  get:
+    summary: View my request statuses
+    description: Vendor only.
+    tags: [Vendor Service Requests]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema: { type: integer, default: 1 }
+      - name: limit
+        in: query
+        schema: { type: integer, default: 20 }
+      - name: status
+        in: query
+        schema: { type: string, enum: [pending, approved, rejected] }
+    responses:
+      '200':
+        description: Paginated list of the authenticated vendor's requests
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceListResponse'
+      '403':
+        description: Not a vendor
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+approve:
+  patch:
+    summary: Approve a vendor service request
+    description: Admin only. Only approved VendorService entries make a vendor eligible to receive bookings for that service. Fails with 409 if the request is not pending.
+    tags: [Admin — Vendor Service Requests]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: vendorServiceId
+        in: path
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Request approved
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Request not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '409':
+        description: Request is not pending
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+
+reject:
+  patch:
+    summary: Reject a vendor service request
+    description: Admin only. Requires a rejection reason. Fails with 409 if the request is not pending.
+    tags: [Admin — Vendor Service Requests]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: vendorServiceId
+        in: path
+        required: true
+        schema: { type: string }
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceRejectInput'
+    responses:
+      '200':
+        description: Request rejected
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/VendorServiceResponse'
+      '400':
+        description: Validation failed (missing rejectionReason)
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '403':
+        description: Not an admin
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '404':
+        description: Request not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
+      '409':
+        description: Request is not pending
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/serviceCatalog.yaml#/ApiErrorResponse'
