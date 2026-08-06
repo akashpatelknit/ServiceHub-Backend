@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { withAuth, withReferral, withSoftDelete } from '../../plugins/index.js';
+import { imageSchema } from '../../features/service-catalog/models/image.schema.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -10,26 +11,28 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       unique: true,
-      required: [true, 'Phone number is required'],
+      sparse: true,
       trim: true,
       validate: {
-        validator: (v) => /^\+?[1-9]\d{1,14}$/.test(v),
+        validator: (v) => !v || /^\+?[1-9]\d{1,14}$/.test(v),
         message: 'Invalid phone number format',
       },
     },
 
     email: {
       type: String,
+      required: [true, 'Email is required'],
+      unique: true,
       trim: true,
       lowercase: true,
       validate: {
-        validator: (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+        validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
         message: 'Invalid email format',
       },
     },
 
     dob: { type: Date },
-    avatar: { type: String, trim: true },
+    avatar: imageSchema,
     password: { type: String },
 
     // Kept for the ~18 non-auth files that already key off `user.role` /
@@ -42,16 +45,16 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     isMobileVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
+    // Soft-deactivate — separate concern from isBlocked (self-service vs admin action).
+    isActive: { type: Boolean, default: true },
+    lastLoginAt: { type: Date },
 
     passwordResetToken: { type: String, select: false },
     passwordResetExpiry: { type: Date, select: false },
 
-    addresses: [
-      {
-        address: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
-        isDefault: { type: Boolean, default: false },
-      },
-    ],
+    // Addresses live in the shared Address collection, queried via
+    // Address.find({ owner: user._id, ownerType: 'User' }) — not embedded here.
+    defaultAddress: { type: mongoose.Schema.Types.ObjectId, ref: 'Address' },
 
     bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }],
     wallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Wallet' },
@@ -72,7 +75,6 @@ userSchema.virtual('fullName').get(function () {
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 
-userSchema.index({ email: 1 });
-// phoneNumber already gets a unique index from `unique: true` above.
+// email and phoneNumber already get unique indexes from `unique: true` above.
 
 export const User = mongoose.model('User', userSchema);

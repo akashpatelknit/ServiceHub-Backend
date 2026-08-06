@@ -34,6 +34,26 @@ class EmailService {
   }
 
   /**
+   * Generic send — the escape hatch for callers (e.g. the auth EmailProvider adapter)
+   * that build their own subject/html rather than using one of the templated methods above.
+   */
+  async sendRaw({ to, subject, html }) {
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"Service Hub" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        to,
+        subject,
+        html,
+      });
+
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error('❌ Failed to send email:', error);
+      throw new Error('Failed to send email');
+    }
+  }
+
+  /**
    * Send email verification link
    */
   async sendEmailVerification({ email, token, name }) {

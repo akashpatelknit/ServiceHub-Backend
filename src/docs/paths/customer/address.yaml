@@ -1,0 +1,154 @@
+collection:
+  get:
+    summary: List the current user's addresses
+    tags: [User Addresses]
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Addresses retrieved
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressListResponse'
+      '401':
+        description: Not authenticated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+
+  post:
+    summary: Add an address for the current user
+    description: The first address created is automatically set as default.
+    tags: [User Addresses]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/address.yaml#/AddressInput'
+    responses:
+      '201':
+        description: Address created
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+      '401':
+        description: Not authenticated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+
+byId:
+  patch:
+    summary: Update one of the current user's addresses
+    tags: [User Addresses]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/address.yaml#/AddressInput'
+    responses:
+      '200':
+        description: Address updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressResponse'
+      '403':
+        description: Address belongs to another owner
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+      '404':
+        description: Address not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+
+  delete:
+    summary: Delete one of the current user's addresses
+    description: If the deleted address was the default and others remain, another is automatically promoted to default.
+    tags: [User Addresses]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Address deleted
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressResponse'
+      '403':
+        description: Address belongs to another owner
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+      '404':
+        description: Address not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+
+setDefault:
+  patch:
+    summary: Set one of the current user's addresses as default
+    description: Unsets the previous default in the same operation.
+    tags: [User Addresses]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Default address updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressResponse'
+      '403':
+        description: Address belongs to another owner
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'
+      '404':
+        description: Address not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/address.yaml#/AddressErrorResponse'

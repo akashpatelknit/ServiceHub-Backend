@@ -17,7 +17,9 @@ const ProductSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     discountPrice: { type: Number, default: 0 },
     discountPercentage: { type: Number, default: 0 },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+    // Dedicated product-category system (features/product-catalog/models/productCategory.model.js)
+    // — deliberately not the legacy 'Category' model, which is service-oriented.
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
     inventoryCount: { type: Number },
     stock: { type: Number, required: true },
     sku: { type: String, required: true },

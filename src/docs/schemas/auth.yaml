@@ -88,8 +88,42 @@ components:
         password:
           type: string
           minLength: 8
-          example: "correct horse battery"
-      description: Either email or phoneNumber is required.
+          example: "correctHorse1"
+          description: At least 8 characters, containing at least one letter and one number.
+      description: >
+        Vendor signup — either email or phoneNumber is required. (User signup uses
+        UserSignupInput instead, where email is always required.)
+
+    UserSignupInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        provider:
+          type: string
+          enum: [email]
+          default: email
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phoneNumber:
+          type: string
+          description: Optional — contact info only, not a login method.
+          example: "+911234567890"
+        password:
+          type: string
+          minLength: 8
+          example: "correctHorse1"
+          description: At least 8 characters, containing at least one letter and one number.
+      description: Email is required and unique for the User identity (unlike Vendor).
 
     LoginInput:
       type: object
@@ -108,7 +142,26 @@ components:
           example: "john@example.com"
         password:
           type: string
-          example: "correct horse battery"
+          example: "correctHorse1"
+
+    UserLoginInput:
+      type: object
+      required:
+        - identifier
+        - password
+      properties:
+        provider:
+          type: string
+          enum: [email]
+          default: email
+          description: Users are email/password only for now — no OTP/social login surface yet.
+        identifier:
+          type: string
+          description: Email or phone number.
+          example: "john@example.com"
+        password:
+          type: string
+          example: "correctHorse1"
 
     RefreshTokenInput:
       type: object
@@ -135,6 +188,7 @@ components:
         newPassword:
           type: string
           minLength: 8
+          description: At least 8 characters, containing at least one letter and one number.
 
     ChangePasswordInput:
       type: object
@@ -145,7 +199,7 @@ components:
         newPassword:
           type: string
           minLength: 8
-          description: Must differ from oldPassword.
+          description: Must differ from oldPassword. At least 8 characters, containing at least one letter and one number.
 
     # ---------- KYC ----------
     KycInfoInput:

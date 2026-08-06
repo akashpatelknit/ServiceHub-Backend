@@ -34,4 +34,11 @@ export const addressValidationSchema = Joi.object({
   country: Joi.string().trim().default('India'),
 
   landmark: Joi.string().trim().allow('', null).optional(),
+
+  label: Joi.string().valid('Home', 'Work', 'Other').optional(),
+
+  geolocation: Joi.object({
+    lat: Joi.number().required(),
+    lng: Joi.number().required(),
+  }).optional(),
 });

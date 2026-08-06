@@ -7,7 +7,7 @@ signup:
       content:
         application/json:
           schema:
-            $ref: '../../schemas/auth.yaml#/SignupInput'
+            $ref: '../../schemas/auth.yaml#/UserSignupInput'
     responses:
       '201':
         description: Account created
@@ -30,14 +30,14 @@ signup:
 
 login:
   post:
-    summary: Log in a user
+    summary: Log in a user (email/password only — no OTP/social login for now)
     tags: [User Authentication]
     requestBody:
       required: true
       content:
         application/json:
           schema:
-            $ref: '../../schemas/auth.yaml#/LoginInput'
+            $ref: '../../schemas/auth.yaml#/UserLoginInput'
     responses:
       '200':
         description: Login successful

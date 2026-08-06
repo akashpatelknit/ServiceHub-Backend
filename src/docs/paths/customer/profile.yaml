@@ -1,0 +1,78 @@
+me:
+  get:
+    summary: Get the current user's profile
+    tags: [User Profile]
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Profile retrieved
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/UserProfileResponse'
+      '401':
+        description: Not authenticated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+  patch:
+    summary: Update the current user's profile
+    description: Updating email resets isEmailVerified to false.
+    tags: [User Profile]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/customer.yaml#/UpdateProfileInput'
+    responses:
+      '200':
+        description: Profile updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/UserProfileResponse'
+      '400':
+        description: Validation failed
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '409':
+        description: Email already in use
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+changePassword:
+  patch:
+    summary: Change the current user's password
+    description: Requires current password confirmation. Revokes the stored refresh token — client must log in again.
+    tags: [User Profile]
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/customer.yaml#/ChangeMyPasswordInput'
+    responses:
+      '200':
+        description: Password changed — client must log in again
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiSuccessResponse'
+      '401':
+        description: Not authenticated, or oldPassword incorrect
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'

@@ -3,10 +3,12 @@ import { ApiResponse, ApiError, asyncHandler } from '../../../utils/index.js';
 import { AuthStrategyRegistry } from '../strategies/strategy.registry.js';
 import { TokenService } from '../services/token.service.js';
 import { BlacklistService } from '../services/blacklist.service.js';
+import { EmailProvider } from '../services/emailProvider.js';
 import { AUTH_PROVIDERS } from '../constants/providers.constants.js';
 import { IDENTITIES } from '../constants/roles.constants.js';
 import { ADMIN_SUB_ROLE_PERMISSIONS } from '../constants/permissions.constants.js';
 import { COOKIE_OPTIONS, ACCESS_TOKEN_COOKIE_MAX_AGE_MS, REFRESH_TOKEN_COOKIE_MAX_AGE_MS } from '../constants/token.constants.js';
+import config from '../../../config/config.js';
 
 /**
  * Identity-agnostic — the same controller logic serves /auth/user, /auth/vendor,
@@ -47,6 +49,7 @@ export const createAuthController = ({ Model, identity }) => {
         throw new ApiError(403, 'Account is blocked');
       }
 
+      actor.lastLoginAt = new Date();
       const tokens = await issueAndPersist(actor);
       return respondWithTokens(res, StatusCodes.OK, tokens);
     }),
@@ -97,9 +100,24 @@ export const createAuthController = ({ Model, identity }) => {
 
     forgotPassword: asyncHandler(async (req, res) => {
       const strategy = AuthStrategyRegistry.resolve(AUTH_PROVIDERS.EMAIL);
-      await strategy.forgotPassword(req.body.email, { Model });
+      const rawToken = await strategy.forgotPassword(req.body.email, { Model });
 
-      // Always 200 — don't reveal whether the email exists.
+      // rawToken is null when the email isn't registered — skip sending. Either way the
+      // response below must stay identical, and a delivery failure must not surface as an
+      // error either, or response status/timing would leak whether the account exists.
+      if (rawToken) {
+        const resetUrl = `${config.FRONTEND_URL}/reset-password?token=${rawToken}`;
+        try {
+          await EmailProvider.send(
+            req.body.email,
+            'Reset your password',
+            `<p>We received a request to reset your password.</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 15 minutes. If you didn't request this, ignore this email.</p>`
+          );
+        } catch (err) {
+          console.error('Failed to send password reset email:', err);
+        }
+      }
+
       return res
         .status(StatusCodes.OK)
         .json(new ApiResponse(StatusCodes.OK, null, 'If this email is registered, a reset link has been sent.'));

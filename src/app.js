@@ -18,6 +18,8 @@ import './config/instrument.mjs';
 import { uploadExcel } from './middlewares/multer.middleware.js';
 import { addonsUpload } from './controllers/excel-upload/excelUpload.controller.js';
 import { swaggerSpec, swaggerUi } from './config/swagger.js';
+import { paymentWebhookRoutes } from './features/payment/index.js';
+import { productOrderWebhookRoutes } from './features/product-order/index.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -32,6 +34,13 @@ app.use(function onError(err, req, res, next) {
 });
 
 app.use(cors(corsConfig));
+
+// Webhook signature verification needs the exact raw request bytes, so these two
+// routes are mounted ahead of the global express.json() below — once that parser
+// runs it consumes/re-serializes the body and the original bytes are gone.
+app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }), paymentWebhookRoutes);
+app.use('/api/webhooks/shiprocket', express.raw({ type: 'application/json' }), productOrderWebhookRoutes);
+
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));

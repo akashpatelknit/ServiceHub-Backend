@@ -23,11 +23,13 @@ export class EmailPasswordStrategy extends AuthStrategy {
 
     const actor = await Model.findOne(query);
     if (!actor || !actor.password) {
+      console.warn(`[auth] failed login — no matching account for identifier=${identifier}`);
       throw new ApiError(401, 'Invalid credentials');
     }
 
     const isMatch = await actor.matchPassword(password);
     if (!isMatch) {
+      console.warn(`[auth] failed login — bad password for identifier=${identifier} actorId=${actor._id}`);
       throw new ApiError(401, 'Invalid credentials');
     }
 
@@ -109,6 +111,10 @@ export class EmailPasswordStrategy extends AuthStrategy {
     }
 
     actor.password = newPassword;
+    // Force re-login everywhere — the caller (changePassword handlers) doesn't reissue
+    // tokens, so the stored refresh token has to be revoked here or a previously-issued
+    // one would keep working after the password change.
+    actor.refreshToken = undefined;
     await actor.save();
 
     return actor;

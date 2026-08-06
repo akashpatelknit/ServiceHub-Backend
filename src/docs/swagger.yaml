@@ -37,6 +37,12 @@ tags:
     description: Admin sub-role assignment and KYC review — permission-gated by ADMIN_SUB_ROLE_PERMISSIONS
   - name: Address
     description: Address CRUD — used to get an address id to reference from KYC step 1
+  - name: User Profile
+    description: Self-service profile and password management for the User identity
+  - name: User Addresses
+    description: Self-service address book for the User identity — the shared Address collection, scoped to owner=me
+  - name: Admin — User Management
+    description: Admin listing/lookup/block/deactivate of customer accounts — permission-gated by ADMIN_SUB_ROLE_PERMISSIONS on the `users` resource
   - name: Catalog Categories
     description: Level 1 of the service catalog hierarchy. Public reads, admin-only writes.
   - name: Catalog Subcategories
@@ -128,6 +134,30 @@ paths:
     $ref: './paths/address.yaml#/create'
   /addresses/{addressId}:
     $ref: './paths/address.yaml#/byId'
+
+  # User Profile Routes
+  /users/me:
+    $ref: './paths/customer/profile.yaml#/me'
+  /users/me/password:
+    $ref: './paths/customer/profile.yaml#/changePassword'
+
+  # User Address Routes
+  /users/me/addresses:
+    $ref: './paths/customer/address.yaml#/collection'
+  /users/me/addresses/{addressId}:
+    $ref: './paths/customer/address.yaml#/byId'
+  /users/me/addresses/{addressId}/default:
+    $ref: './paths/customer/address.yaml#/setDefault'
+
+  # Admin — User Management Routes
+  /admin/users:
+    $ref: './paths/customer/admin.yaml#/list'
+  /admin/users/{id}:
+    $ref: './paths/customer/admin.yaml#/byId'
+  /admin/users/{id}/block:
+    $ref: './paths/customer/admin.yaml#/block'
+  /admin/users/{id}/deactivate:
+    $ref: './paths/customer/admin.yaml#/deactivate'
 
   # Service Catalog — Categories (level 1)
   /service-catalog/categories:

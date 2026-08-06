@@ -1,5 +1,15 @@
 components:
   schemas:
+    Geolocation:
+      type: object
+      properties:
+        lat:
+          type: number
+          example: 19.0760
+        lng:
+          type: number
+          example: 72.8777
+
     Address:
       type: object
       properties:
@@ -31,6 +41,22 @@ components:
         completeAddress:
           type: string
           example: 123 Main St, Mahim, Mumbai - 400001, India
+        ownerType:
+          type: string
+          enum: [User, Vendor]
+          description: Set by the server from the authenticated actor — not client input.
+        owner:
+          type: string
+          description: User or Vendor document id, per ownerType. Set by the server.
+        label:
+          type: string
+          enum: [Home, Work, Other]
+          default: Other
+        geolocation:
+          $ref: '#/components/schemas/Geolocation'
+        isDefault:
+          type: boolean
+          description: Exactly one address per (owner, ownerType) is default at a time.
 
     AddressInput:
       type: object
@@ -59,9 +85,16 @@ components:
         landmark:
           type: string
           example: Mahim
+        label:
+          type: string
+          enum: [Home, Work, Other]
+          default: Other
+        geolocation:
+          $ref: '#/components/schemas/Geolocation'
       description: >
         Used for both create and update — update currently requires the full
-        address (all required fields), not a partial patch.
+        address (all required fields), not a partial patch. ownerType/owner are
+        derived server-side from the authenticated caller and cannot be set here.
 
     AddressResponse:
       type: object
@@ -74,6 +107,20 @@ components:
           example: Address retrieved successfully
         data:
           $ref: '#/components/schemas/Address'
+
+    AddressListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Addresses retrieved successfully
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
 
     AddressErrorResponse:
       type: object

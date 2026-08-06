@@ -11,6 +11,7 @@ export const PERMISSION_RESOURCES = {
   KYC: 'kyc',
   BOOKINGS: 'bookings',
   ORDERS: 'orders',
+  PAYMENTS: 'payments',
   WALLETS: 'wallets',
   REPORTS: 'reports',
   SETTINGS: 'settings',
@@ -47,6 +48,9 @@ export const ADMIN_SUB_ROLE_PERMISSIONS = {
   [ADMIN_SUB_ROLES.FINANCE]: {
     [PERMISSION_RESOURCES.WALLETS]: [PERMISSION_ACTIONS.READ, PERMISSION_ACTIONS.UPDATE],
     [PERMISSION_RESOURCES.ORDERS]: [PERMISSION_ACTIONS.READ, PERMISSION_ACTIONS.UPDATE],
+    // UPDATE gates the refund action — a real financial operation, kept under its own
+    // resource rather than folded into ORDERS so it can't be granted incidentally.
+    [PERMISSION_RESOURCES.PAYMENTS]: [PERMISSION_ACTIONS.READ, PERMISSION_ACTIONS.UPDATE],
     [PERMISSION_RESOURCES.REPORTS]: [PERMISSION_ACTIONS.READ, PERMISSION_ACTIONS.EXPORT],
   },
 

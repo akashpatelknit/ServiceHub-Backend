@@ -1,0 +1,147 @@
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '507f1f77bcf86cd799439011'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        fullName:
+          type: string
+          description: Virtual — firstName + middleName + lastName.
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+          nullable: true
+          description: Contact info only, not a login method.
+        dob:
+          type: string
+          format: date
+          nullable: true
+        avatar:
+          $ref: '#/components/schemas/Image'
+        isVerified:
+          type: boolean
+        isEmailVerified:
+          type: boolean
+          description: Reset to false whenever email is changed via PATCH /users/me.
+        isMobileVerified:
+          type: boolean
+        isBlocked:
+          type: boolean
+          description: Admin-set — abuse handling.
+        isActive:
+          type: boolean
+          description: Self-service soft-deactivate — separate concern from isBlocked.
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        defaultAddress:
+          type: string
+          nullable: true
+          description: Address document id — kept in sync with the Address collection's isDefault flag.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserProfile'
+
+    UpdateProfileInput:
+      type: object
+      description: At least one field is required. Changing email resets isEmailVerified to false.
+      properties:
+        firstName:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+        email:
+          type: string
+          format: email
+        avatar:
+          $ref: '#/components/schemas/ImageInput'
+
+    ChangeMyPasswordInput:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          description: Must differ from oldPassword. At least 8 characters, containing at least one letter and one number.
+
+    # ---------- admin: user management ----------
+    AdminUserListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserProfile'
+                total:
+                  type: integer
+                  example: 42
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                totalPages:
+                  type: integer
+                  example: 3
+
+    AdminUserDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiSuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/UserProfile'
+                addresses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Address'
+
+    ToggleBlockInput:
+      type: object
+      properties:
+        isBlocked:
+          type: boolean
+          description: Omit to toggle the current value.
+
+    ToggleActiveInput:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+          description: Omit to toggle the current value.

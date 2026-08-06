@@ -1,0 +1,151 @@
+list:
+  get:
+    summary: List customers (paginated, filterable)
+    tags: [Admin — User Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: isActive
+        in: query
+        schema:
+          type: boolean
+      - name: isBlocked
+        in: query
+        schema:
+          type: boolean
+      - name: search
+        in: query
+        description: Matches against firstName, lastName, email.
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Users retrieved
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/AdminUserListResponse'
+      '403':
+        description: Insufficient permissions
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+byId:
+  get:
+    summary: Get a customer's profile and addresses
+    tags: [Admin — User Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: User found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/AdminUserDetailResponse'
+      '403':
+        description: Insufficient permissions
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+block:
+  patch:
+    summary: Block or unblock a customer
+    description: Body isBlocked is optional — omit to toggle the current value.
+    tags: [Admin — User Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/customer.yaml#/ToggleBlockInput'
+    responses:
+      '200':
+        description: Block status updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/UserProfileResponse'
+      '403':
+        description: Insufficient permissions
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+
+deactivate:
+  patch:
+    summary: Activate or deactivate a customer account
+    description: Body isActive is optional — omit to toggle the current value. Separate concern from block (self-service vs admin action).
+    tags: [Admin — User Management]
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/customer.yaml#/ToggleActiveInput'
+    responses:
+      '200':
+        description: Active status updated
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/customer.yaml#/UserProfileResponse'
+      '403':
+        description: Insufficient permissions
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'
+      '404':
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: '../../schemas/auth.yaml#/ApiErrorResponse'

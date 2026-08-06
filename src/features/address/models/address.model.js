@@ -28,7 +28,38 @@ const AddressSchema = new Schema({
     type: String,
     default: null,
   },
+
+  // Ownership — who this address belongs to. Not `required` at the schema level yet:
+  // existing docs predate these fields (see migrations/) and application code is the
+  // one place that must always set them going forward.
+  ownerType: {
+    type: String,
+    enum: ['User', 'Vendor'],
+  },
+  owner: {
+    type: Schema.Types.ObjectId,
+    refPath: 'ownerType',
+  },
+
+  label: {
+    type: String,
+    enum: ['Home', 'Work', 'Other'],
+    default: 'Other',
+  },
+
+  // For future serviceability checks — not populated by every caller.
+  geolocation: {
+    lat: { type: Number },
+    lng: { type: Number },
+  },
+
+  isDefault: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+AddressSchema.index({ owner: 1, ownerType: 1, isDefault: 1 });
 
 AddressSchema.pre('save', function (next) {
   this.completeAddress = `${this.street}, ${this.landmark ? this.landmark + ', ' : ''}${this.city}, ${this.state} - ${this.pinCode}, ${this.country}`;
