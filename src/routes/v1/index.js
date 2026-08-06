@@ -11,6 +11,7 @@ import productCatalogFeatureRoutes from '../../features/product-catalog/index.js
 import { paymentRoutes } from '../../features/payment/index.js';
 import searchFeatureRoutes from '../../features/search/index.js';
 import vendorLeadFeatureRoutes from '../../features/vendor-leads/index.js';
+import { dashboardRoutes } from '../../features/dashboard/index.js';
 
 router.use('/v1', authFeatureRoutes);
 router.use('/v1/addresses', addressFeatureRoutes);
@@ -32,5 +33,6 @@ router.use('/v1/payments', paymentRoutes);
 // see features/vendor-leads for why this is a standalone Lead model, not a real Vendor.
 router.use('/v1/vendor-leads', vendorLeadFeatureRoutes);
 router.use('/v1/search', searchFeatureRoutes);
+router.use('/v1/admin/dashboard', dashboardRoutes);
 
 export default router;
