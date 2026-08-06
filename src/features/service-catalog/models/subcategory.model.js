@@ -63,6 +63,7 @@ const subcategorySchema = new Schema(
 // A subcategory name only needs to be unique within its parent category.
 subcategorySchema.index({ category: 1, slug: 1 }, { unique: true });
 subcategorySchema.index({ category: 1, isActive: 1, sortOrder: 1 });
+subcategorySchema.index({ name: 'text' });
 
 subcategorySchema.pre('save', function (next) {
   if (this.isModified('name') || this.isNew) {

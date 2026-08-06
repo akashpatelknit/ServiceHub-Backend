@@ -59,6 +59,7 @@ const categorySchema = new Schema(
 );
 
 categorySchema.index({ isActive: 1, sortOrder: 1 });
+categorySchema.index({ name: 'text' });
 
 categorySchema.pre('save', function (next) {
   if (this.isModified('name') || this.isNew) {

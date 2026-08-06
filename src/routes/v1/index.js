@@ -9,6 +9,8 @@ import cartFeatureRoutes from '../../features/cart/index.js';
 import serviceBookingRoutes from '../../features/service-booking/routes/index.js';
 import productCatalogFeatureRoutes from '../../features/product-catalog/index.js';
 import { paymentRoutes } from '../../features/payment/index.js';
+import searchFeatureRoutes from '../../features/search/index.js';
+import vendorLeadFeatureRoutes from '../../features/vendor-leads/index.js';
 
 router.use('/v1', authFeatureRoutes);
 router.use('/v1/addresses', addressFeatureRoutes);
@@ -26,5 +28,9 @@ router.use('/v1/products', productCatalogFeatureRoutes);
 // payment owns /v1/payments/verify — the client-side instant-feedback path. The
 // webhook (source of truth) is mounted separately in app.js, outside this router.
 router.use('/v1/payments', paymentRoutes);
+// Public interest-registration form for the not-yet-built vendor onboarding flow —
+// see features/vendor-leads for why this is a standalone Lead model, not a real Vendor.
+router.use('/v1/vendor-leads', vendorLeadFeatureRoutes);
+router.use('/v1/search', searchFeatureRoutes);
 
 export default router;
