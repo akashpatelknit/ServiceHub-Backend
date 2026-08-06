@@ -2,7 +2,7 @@
 
 REST API powering the Service Hub marketplace: a service-catalog + product-catalog
 platform connecting **customers**, **vendors**, and **admins**. This backend serves both
-the [admin panel](https://github.com/akashpatelknit/ServiceHub-Admin) and the [customer site](../service-hub-customer).
+the [admin panel](https://github.com/akashpatelknit/ServiceHub-Admin) and the [customer site](https://github.com/akashpatelknit/ServiceHub-Customer).
 
 ## Tech Stack
 
