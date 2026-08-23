@@ -113,8 +113,12 @@ export class EmailPasswordStrategy extends AuthStrategy {
     actor.password = newPassword;
     // Force re-login everywhere — the caller (changePassword handlers) doesn't reissue
     // tokens, so the stored refresh token has to be revoked here or a previously-issued
-    // one would keep working after the password change.
+    // one would keep working after the password change. Both slots: the grace slot
+    // (see REFRESH_TOKEN_GRACE_MS) would otherwise let the just-rotated-out token
+    // keep working for a few more seconds too.
     actor.refreshToken = undefined;
+    actor.previousRefreshToken = undefined;
+    actor.previousRefreshTokenExpiresAt = undefined;
     await actor.save();
 
     return actor;

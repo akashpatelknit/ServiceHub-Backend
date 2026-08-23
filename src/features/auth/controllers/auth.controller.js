@@ -3,11 +3,16 @@ import { ApiResponse, ApiError, asyncHandler } from '../../../utils/index.js';
 import { AuthStrategyRegistry } from '../strategies/strategy.registry.js';
 import { TokenService } from '../services/token.service.js';
 import { BlacklistService } from '../services/blacklist.service.js';
-import { EmailProvider } from '../services/emailProvider.js';
+import { queues } from '../../../lib/queue/queues.js';
 import { AUTH_PROVIDERS } from '../constants/providers.constants.js';
 import { IDENTITIES } from '../constants/roles.constants.js';
 import { ADMIN_SUB_ROLE_PERMISSIONS } from '../constants/permissions.constants.js';
-import { COOKIE_OPTIONS, ACCESS_TOKEN_COOKIE_MAX_AGE_MS, REFRESH_TOKEN_COOKIE_MAX_AGE_MS } from '../constants/token.constants.js';
+import {
+  COOKIE_OPTIONS,
+  ACCESS_TOKEN_COOKIE_MAX_AGE_MS,
+  REFRESH_TOKEN_COOKIE_MAX_AGE_MS,
+  REFRESH_TOKEN_GRACE_MS,
+} from '../constants/token.constants.js';
 import config from '../../../config/config.js';
 
 /**
@@ -19,6 +24,12 @@ import config from '../../../config/config.js';
 export const createAuthController = ({ Model, identity }) => {
   const issueAndPersist = async (actor) => {
     const { accessToken, refreshToken } = TokenService.issueTokenPair(actor, identity);
+    // Demote the outgoing token into the grace slot instead of dropping it outright —
+    // see REFRESH_TOKEN_GRACE_MS for why a hard cutover mis-fires on concurrent tabs.
+    if (actor.refreshToken) {
+      actor.previousRefreshToken = actor.refreshToken;
+      actor.previousRefreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_GRACE_MS);
+    }
     actor.refreshToken = refreshToken;
     await actor.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
@@ -61,9 +72,15 @@ export const createAuthController = ({ Model, identity }) => {
       }
 
       const decoded = TokenService.verifyRefreshToken(incoming);
-      const actor = await Model.findById(decoded.sub).select('+refreshToken');
+      const actor = await Model.findById(decoded.sub).select('+refreshToken +previousRefreshToken +previousRefreshTokenExpiresAt');
 
-      if (!actor || actor.refreshToken !== incoming) {
+      const isCurrent = actor?.refreshToken === incoming;
+      const isWithinGrace =
+        actor?.previousRefreshToken === incoming &&
+        actor?.previousRefreshTokenExpiresAt &&
+        actor.previousRefreshTokenExpiresAt.getTime() > Date.now();
+
+      if (!actor || (!isCurrent && !isWithinGrace)) {
         throw new ApiError(401, 'Refresh token mismatch — please login again');
       }
 
@@ -89,7 +106,9 @@ export const createAuthController = ({ Model, identity }) => {
 
     logout: asyncHandler(async (req, res) => {
       await BlacklistService.add(req.tokenJti, TokenService.getRemainingTtlSeconds({ exp: req.tokenExp }));
-      await Model.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
+      await Model.findByIdAndUpdate(req.user._id, {
+        $unset: { refreshToken: 1, previousRefreshToken: 1, previousRefreshTokenExpiresAt: 1 },
+      });
 
       return res
         .status(StatusCodes.OK)
@@ -108,13 +127,13 @@ export const createAuthController = ({ Model, identity }) => {
       if (rawToken) {
         const resetUrl = `${config.FRONTEND_URL}/reset-password?token=${rawToken}`;
         try {
-          await EmailProvider.send(
-            req.body.email,
-            'Reset your password',
-            `<p>We received a request to reset your password.</p><p><a href="${resetUrl}">Reset password</a></p><p>This link expires in 15 minutes. If you didn't request this, ignore this email.</p>`
-          );
+          await queues.email.add('send-password-reset', {
+            to: req.body.email,
+            template: 'passwordReset',
+            templateData: { resetUrl, expiryMinutes: 15 },
+          });
         } catch (err) {
-          console.error('Failed to send password reset email:', err);
+          console.error('Failed to enqueue password reset email:', err);
         }
       }
 

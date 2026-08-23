@@ -3,7 +3,12 @@ import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
 
 export function withAuth(schema) {
-  schema.add({ refreshToken: { type: String, select: false } });
+  schema.add({
+    refreshToken: { type: String, select: false },
+    // Grace slot for the token rotation just replaced — see REFRESH_TOKEN_GRACE_MS.
+    previousRefreshToken: { type: String, select: false },
+    previousRefreshTokenExpiresAt: { type: Date, select: false },
+  });
 
   schema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
