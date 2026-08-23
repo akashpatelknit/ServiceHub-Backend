@@ -265,4 +265,5 @@ export const allowedOrigins = [
   'http://localhost:5173',
   'https://servicehub-akashbuilds.vercel.app',
   'https://service-hub-customer.vercel.app',
+  'https://servicehub-vendor.vercel.app',
 ];
