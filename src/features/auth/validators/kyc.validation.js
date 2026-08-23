@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DOCUMENT_TYPES } from '../constants/kyc.constants.js';
+import { DOCUMENT_TYPES, KYC_DOCUMENT_SLOTS, ALLOWED_KYC_IMAGE_MIME_TYPES } from '../constants/kyc.constants.js';
 
 export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 
@@ -24,6 +24,16 @@ export const kycInfoSchema = {
       .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format'),
     occupation: z.string().trim().max(100).optional(),
     address: objectIdSchema.optional(),
+  }),
+};
+
+// Presigned upload URL — client uploads the file bytes straight to R2 with the
+// returned `uploadUrl`, then submits the resulting `url` in the step-2 payload below.
+export const kycUploadUrlSchema = {
+  body: z.object({
+    slot: z.enum(Object.values(KYC_DOCUMENT_SLOTS)),
+    fileType: z.enum(ALLOWED_KYC_IMAGE_MIME_TYPES),
+    fileSize: z.number().positive(),
   }),
 };
 

@@ -4,7 +4,7 @@ import { checkPermission } from '../../auth/middlewares/checkPermission.js';
 import { validate } from '../../auth/middlewares/validate.js';
 import { PERMISSION_RESOURCES, PERMISSION_ACTIONS } from '../../auth/constants/permissions.constants.js';
 import { ServiceOrderController } from '../controllers/serviceOrder.controller.js';
-import { assignVendorSchema } from '../validators/serviceOrder.validation.js';
+import { assignVendorSchema, vendorCandidatesSchema } from '../validators/serviceOrder.validation.js';
 
 // This module's only HTTP surface — customer-facing list/detail/cancel and the
 // generic admin list/detail/status-update all live in `cart`, which queries the
@@ -12,6 +12,13 @@ import { assignVendorSchema } from '../validators/serviceOrder.validation.js';
 const router = Router();
 
 router.use(authenticate);
+
+router.get(
+  '/:id/vendor-candidates',
+  checkPermission(PERMISSION_RESOURCES.ORDERS, PERMISSION_ACTIONS.READ),
+  validate(vendorCandidatesSchema),
+  ServiceOrderController.vendorCandidates
+);
 
 router.post(
   '/:id/assign-vendor',

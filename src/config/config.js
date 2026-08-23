@@ -17,6 +17,14 @@ export default {
   EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,
   SENDER_EMAIL: process.env.SENDER_EMAIL,
 
+  // Resend (transactional email — src/lib/email)
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  FROM_EMAIL: process.env.FROM_EMAIL,
+  // Non-production only — see ResendProvider.send(). The email address your Resend
+  // account is registered under; free-tier/no-verified-domain sending is restricted
+  // to this address only, so every outbound email gets redirected here in dev.
+  RESEND_SANDBOX_REDIRECT_EMAIL: process.env.RESEND_SANDBOX_REDIRECT_EMAIL,
+
   // Database
   DATABASE_URL: process.env.DATABASE_URL,
 

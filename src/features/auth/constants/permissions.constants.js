@@ -16,6 +16,7 @@ export const PERMISSION_RESOURCES = {
   REPORTS: 'reports',
   SETTINGS: 'settings',
   ADMINS: 'admins',
+  QUEUES: 'queues',
 };
 
 export const PERMISSION_ACTIONS = {

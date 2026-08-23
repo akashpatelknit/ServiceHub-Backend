@@ -10,20 +10,21 @@ import {
   getUnreadNotificationCount,
   sendNotification,
 } from '../controllers/notification/notification.controller.js';
-import { authenticate as authMiddleware } from '../features/auth/middlewares/authenticate.js';
+import { authenticate, requireIdentity } from '../features/auth/middlewares/authenticate.js';
+import { IDENTITIES } from '../features/auth/constants/roles.constants.js';
 
 const router = express.Router();
 
-router.route('/notification').get(authMiddleware(['admin']), getAllNotifications);
-router.route('/notification').post(authMiddleware(['admin', 'vendor', 'user']), createNotification);
-router.route('/notification/:id').delete(authMiddleware(['admin']), deleteNotification);
-router.route('/notification/:id/send').patch(authMiddleware(['admin']), sendNotification);
+router.route('/notification').get(authenticate, requireIdentity(IDENTITIES.ADMIN), getAllNotifications);
+router.route('/notification').post(authenticate, createNotification);
+router.route('/notification/:id').delete(authenticate, requireIdentity(IDENTITIES.ADMIN), deleteNotification);
+router.route('/notification/:id/send').patch(authenticate, requireIdentity(IDENTITIES.ADMIN), sendNotification);
 
-router.route('/notification/vendor').get(authMiddleware(['vendor']), getVendorNotifications);
-router.route('/notification/customer').get(authMiddleware(['customer']), getCustomerNotifications);
+router.route('/notification/vendor').get(authenticate, requireIdentity(IDENTITIES.VENDOR), getVendorNotifications);
+router.route('/notification/customer').get(authenticate, requireIdentity(IDENTITIES.USER), getCustomerNotifications);
 
-router.route('/notification/:id/read').patch(authMiddleware(['admin', 'vendor', 'user']), markNotificationAsRead);
-router.route('/notification/read-all').patch(authMiddleware(['admin', 'vendor', 'user']), markAllNotificationsAsRead);
-router.route('/notification/count').get(authMiddleware(['admin', 'vendor', 'user']), getUnreadNotificationCount);
+router.route('/notification/:id/read').patch(authenticate, markNotificationAsRead);
+router.route('/notification/read-all').patch(authenticate, markAllNotificationsAsRead);
+router.route('/notification/count').get(authenticate, getUnreadNotificationCount);
 
 export default router;

@@ -22,7 +22,10 @@ export const KYC_TRANSITIONS = {
   [KYC_STATUS.PAYMENT_COMPLETED]: [KYC_STATUS.PENDING_VERIFICATION],
   [KYC_STATUS.PENDING_VERIFICATION]: [KYC_STATUS.VERIFIED, KYC_STATUS.REJECTED],
   [KYC_STATUS.VERIFIED]: [],
-  [KYC_STATUS.REJECTED]: [],
+  // A rejected vendor can resubmit — this is the one backward edge in an otherwise
+  // forward-only machine. Previously-submitted info/documents/bankDetails snapshots
+  // are left in place (not cleared) so the resubmit flow can pre-fill from them.
+  [KYC_STATUS.REJECTED]: [KYC_STATUS.DRAFT],
 };
 
 export const DOCUMENT_TYPES = {
@@ -39,3 +42,18 @@ export const REJECTION_REASONS = {
   INCOMPLETE: 'incomplete',
   FRAUDULENT: 'fraudulent',
 };
+
+// R2 folder per document slot — mirrors features/service-catalog's CATALOG_MEDIA_FOLDERS
+// presigned-upload pattern (MediaService.generatePresignedUploadUrl), scoped to KYC's
+// own feature module instead of a cross-feature import.
+export const KYC_DOCUMENT_SLOTS = {
+  PRIMARY_FRONT: 'primary-front',
+  PRIMARY_BACK: 'primary-back',
+  SECONDARY_FRONT: 'secondary-front',
+  SECONDARY_BACK: 'secondary-back',
+  SELFIE: 'selfie',
+};
+
+export const ALLOWED_KYC_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export const MAX_KYC_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB

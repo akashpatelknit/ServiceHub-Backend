@@ -48,6 +48,12 @@ const serviceOrderSchema = new Schema({
     default: SERVICE_ORDER_STATUSES.PENDING,
   },
   statusHistory: { type: [statusHistoryEntrySchema], default: [] },
+
+  // Job-queue bookkeeping (BullMQ) — idempotency markers and a handle for cancelling
+  // a still-pending delayed job.
+  confirmationEmailSentAt: { type: Date, default: null },
+  invoiceUrl: { type: String, default: null },
+  reminderJobId: { type: String, default: null },
 });
 
 // Third arg pins the discriminatorKey (`orderType`) value to 'service' — matching the

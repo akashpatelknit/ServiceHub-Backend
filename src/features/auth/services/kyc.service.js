@@ -1,14 +1,21 @@
 import crypto from 'node:crypto';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { v4 as uuid } from 'uuid';
 import { Kyc } from '../models/kyc.model.js';
 import Transaction from '../../../models/transaction.model.js';
 import { Setting } from '../../../models/settings.model.js';
 import { Address } from '../../address/models/address.model.js';
+import { Vendor } from '../../../core/models/index.js';
 import { ApiError } from '../../../utils/index.js';
 import config from '../../../config/config.js';
+import r2Client from '../../../config/r2Config.js';
 import { createKYCOrder } from '../../../controllers/payment/utils/createRazorpayOrder.js';
-import { KYC_STATUS, KYC_TRANSITIONS } from '../constants/kyc.constants.js';
+import { KYC_STATUS, KYC_TRANSITIONS, MAX_KYC_IMAGE_SIZE_BYTES } from '../constants/kyc.constants.js';
+import { AdminEvents } from '../../../lib/realtime/adminEvents.js';
 
 const DEFAULT_KYC_AMOUNT = 500;
+const KYC_UPLOAD_PRESIGN_EXPIRY_SECONDS = 60;
 
 const assertTransition = (from, to) => {
   const allowed = KYC_TRANSITIONS[from] ?? [];
@@ -39,6 +46,29 @@ export const KycService = {
       throw new ApiError(404, 'KYC record not found');
     }
     return kyc;
+  },
+
+  // Vendor calls this to get a short-lived URL to PUT the file straight to R2 from the
+  // client — the file itself never passes through this server. Mirrors
+  // features/service-catalog's MediaService.generatePresignedUploadUrl.
+  async generateDocumentUploadUrl(vendorId, { slot, fileType, fileSize }) {
+    if (fileSize > MAX_KYC_IMAGE_SIZE_BYTES) {
+      throw new ApiError(400, `File exceeds max size of ${MAX_KYC_IMAGE_SIZE_BYTES / (1024 * 1024)}MB`);
+    }
+
+    const extension = fileType.split('/')[1];
+    const key = `kyc-documents/${slot}/${vendorId}/${uuid()}.${extension}`;
+
+    const command = new PutObjectCommand({
+      Bucket: config.R2_BUCKET_NAME,
+      Key: key,
+      ContentType: fileType,
+    });
+
+    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: KYC_UPLOAD_PRESIGN_EXPIRY_SECONDS });
+    const url = `${config.R2_PUBLIC_URL}/${key}`;
+
+    return { uploadUrl, key, url, expiresIn: KYC_UPLOAD_PRESIGN_EXPIRY_SECONDS };
   },
 
   // Step 1
@@ -132,7 +162,12 @@ export const KycService = {
     await transaction.markKYCPaymentCompleted(razorpay_payment_id, razorpay_signature, 'razorpay');
 
     await applyTransition(kyc, KYC_STATUS.PAYMENT_COMPLETED, { paymentRef: transaction._id });
-    return applyTransition(kyc, KYC_STATUS.PENDING_VERIFICATION);
+    const submitted = await applyTransition(kyc, KYC_STATUS.PENDING_VERIFICATION);
+
+    const vendor = await Vendor.findById(vendorId).select('firstName lastName middleName');
+    AdminEvents.emitKycSubmitted({ vendorId, vendorName: vendor?.fullName, submittedAt: new Date() });
+
+    return submitted;
   },
 
   async approve(vendorId, adminId, comments) {
@@ -152,5 +187,52 @@ export const KycService = {
       rejectionReason: reason,
       reviewComments: comments,
     });
+  },
+
+  // Only reachable from `rejected` (see KYC_TRANSITIONS). Clears the prior review
+  // verdict but leaves info/documents/bankDetails so the vendor can resubmit from
+  // where they left off instead of starting the whole flow over.
+  async resubmit(vendorId) {
+    const kyc = await this.getByVendor(vendorId);
+    return applyTransition(kyc, KYC_STATUS.DRAFT, {
+      reviewedBy: null,
+      reviewedAt: null,
+      rejectionReason: null,
+      reviewComments: null,
+    });
+  },
+
+  // Admin list — filterable by status, vendor populated so the admin table doesn't
+  // need a second round-trip per row.
+  async adminList({ status, page = 1, limit = 20 }) {
+    const filter = {};
+    if (status) filter.status = status;
+
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      Kyc.find(filter)
+        .populate('vendor', 'firstName lastName middleName email phoneNumber')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Kyc.countDocuments(filter),
+    ]);
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  },
+
+  // Admin detail — same vendor doc as the list, plus the address/payment/reviewer refs
+  // the review screen needs that the list doesn't.
+  async adminGetByVendor(vendorId) {
+    const kyc = await Kyc.findOne({ vendor: vendorId })
+      .populate('vendor', 'firstName lastName middleName email phoneNumber')
+      .populate('info.address')
+      .populate('paymentRef', 'amount status paymentMethod')
+      .populate('reviewedBy', 'firstName lastName email');
+
+    if (!kyc) {
+      throw new ApiError(404, 'KYC record not found');
+    }
+    return kyc;
   },
 };

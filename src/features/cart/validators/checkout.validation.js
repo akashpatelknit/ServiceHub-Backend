@@ -11,5 +11,10 @@ export const checkoutSchema = {
     scheduledDate: z.coerce.date().optional(),
     scheduledSlot: z.string().trim().min(1).optional(),
     paymentMethod: z.enum(['razorpay']),
+    // Optional so existing/unmigrated callers don't get rejected — but the
+    // customer frontend's checkout flow SHOULD always send one (generated once per
+    // checkout attempt, reused across timeout retries) to get duplicate-order
+    // protection. See PaymentService.createIntent for the dedup logic.
+    idempotencyKey: z.string().trim().min(1).max(100).optional(),
   }),
 };

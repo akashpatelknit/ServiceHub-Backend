@@ -113,7 +113,7 @@ export const getAllNotifications = asyncHandler(async (req, res) => {
 
   const query = { isDelete: false };
 
-  if (type && ['user', 'vendor', 'all'].includes(type)) {
+  if (type && ['user', 'vendor', 'all', 'admin'].includes(type)) {
     query.type = type;
   }
 

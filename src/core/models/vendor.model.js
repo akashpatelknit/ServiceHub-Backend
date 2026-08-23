@@ -55,6 +55,12 @@ const vendorSchema = new mongoose.Schema(
     isBlocked: { type: Boolean, default: false },
     blockReason: { type: String },
 
+    // Admin-facing account status. isBlocked/isVerified stay in sync with this
+    // (see features/vendor-management/services/adminVendor.service.js) so the
+    // existing login gate (isBlocked) and vendor-candidate matching gate
+    // (isVerified) both keep working without needing to read this field directly.
+    status: { type: String, enum: ['pending', 'active', 'blocked', 'suspended'], default: 'pending' },
+
     passwordResetToken: { type: String, select: false },
     passwordResetExpiry: { type: Date, select: false },
 

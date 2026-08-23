@@ -7,7 +7,7 @@ import { ProductOrderService } from '../../product-order/index.js';
 import { ApiError } from '../../../utils/index.js';
 
 export const CheckoutService = {
-  async checkout(userId, { addressId, scheduledDate, scheduledSlot, paymentMethod }) {
+  async checkout(userId, { addressId, scheduledDate, scheduledSlot, paymentMethod, idempotencyKey }) {
     // 1. Reload cart fresh from DB — never trust client-sent cart state.
     const cart = await CartService.findOrCreate(userId);
     if (!cart.items.length) {
@@ -89,6 +89,7 @@ export const CheckoutService = {
       // so this trims to the last 8 hex chars of the user id plus a base36 timestamp.
       receipt: `ck_${userId.toString().slice(-8)}_${Date.now().toString(36)}`,
       notes: { userId: userId.toString(), paymentMethod },
+      idempotencyKey,
     });
 
     // 7. Everything below is atomic — order(s) + cart clear. Any failure rolls the
@@ -137,7 +138,15 @@ export const CheckoutService = {
     }
 
     return {
-      serviceOrder: serviceOrder ? { orderNumber: serviceOrder.orderNumber, totalAmount: serviceOrder.totalAmount } : undefined,
+      serviceOrder: serviceOrder
+        ? {
+            orderId: serviceOrder._id,
+            orderNumber: serviceOrder.orderNumber,
+            totalAmount: serviceOrder.totalAmount,
+            serviceNames: serviceOrder.items.map((item) => item.serviceNameSnapshot),
+            createdAt: serviceOrder.createdAt,
+          }
+        : undefined,
       productOrder: productOrder ? { orderNumber: productOrder.orderNumber, totalAmount: productOrder.totalAmount } : undefined,
       payment: { gatewayOrderId, keyId, amount, currency },
     };

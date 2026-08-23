@@ -44,6 +44,14 @@ const paymentSchema = new Schema(
     },
     gateway: { type: String, default: 'razorpay' },
     gatewayOrderId: { type: String, unique: true, sparse: true },
+    // Client-supplied dedup key for order creation (e.g. one per checkout attempt),
+    // distinct from gatewayOrderId's uniqueness — that only prevents two Payment docs
+    // from pointing at the same Razorpay order *after* Razorpay has assigned two
+    // different order ids; this stops the duplicate creation itself. Sparse so
+    // requests that don't pass one (any purposeType other than checkout, for now)
+    // aren't forced into a null-collision — see createIntent for why it's omitted
+    // rather than set to null when absent.
+    idempotencyKey: { type: String, unique: true, sparse: true, index: true },
     gatewayPaymentId: { type: String, default: null },
     gatewaySignature: { type: String, default: null },
     method: { type: String, default: null },

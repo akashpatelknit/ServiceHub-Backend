@@ -4,6 +4,9 @@ import crypto from 'crypto';
 import path from 'path';
 import config from '../../config/config.js';
 
+// Whitelisted so a client can't inject an arbitrary S3 key prefix via the `folder` field.
+const ALLOWED_UPLOAD_FOLDERS = ['products', 'kyc-documents'];
+
 const bucketName = config.AWS_S3_BUCKET_NAME;
 const region = config.AWS_REGION;
 const accessKeyId = config.AWS_ACCESS_KEY_ID;
@@ -102,7 +105,7 @@ class SimpleImageService {
     return response.successful.flatMap((item) => item);
   }
 
-  async processImage(file) {
+  async processImage(file, folder = this.productConfig.folder) {
     const urls = [];
 
     try {
@@ -115,7 +118,7 @@ class SimpleImageService {
         const fileNameWithoutExt = file.originalname.replace(originalExt, '');
         const fileNameForGeneration = fileNameWithoutExt + ext;
 
-        const fileName = `${this.productConfig.folder}/${sizeConfig.suffix}/${this.generateFileName(
+        const fileName = `${folder}/${sizeConfig.suffix}/${this.generateFileName(
           fileNameForGeneration,
           sizeConfig.suffix
         )}`;
@@ -150,7 +153,7 @@ class SimpleImageService {
     return results;
   }
 
-  async processAndUploadImages(file, imageType = 'product') {
+  async processAndUploadImages(file, folder = this.productConfig.folder) {
     if (!file || !file.buffer) {
       throw new Error('Invalid file provided');
     }
@@ -164,10 +167,10 @@ class SimpleImageService {
       throw new Error(`Invalid file format. Allowed: ${this.productConfig.allowedFormats.join(', ')}`);
     }
 
-    return await this.processImage(file);
+    return await this.processImage(file, folder);
   }
 
-  async batchUploadImages(files, imageType = 'product') {
+  async batchUploadImages(files, folder = this.productConfig.folder) {
     if (!files || files.length === 0) {
       throw new Error('No files provided');
     }
@@ -177,7 +180,7 @@ class SimpleImageService {
 
     for (let i = 0; i < files.length; i++) {
       try {
-        const imageResults = await this.processAndUploadImages(files[i], imageType);
+        const imageResults = await this.processAndUploadImages(files[i], folder);
         console.log(imageResults);
         results.push(imageResults[0]);
       } catch (error) {
@@ -207,7 +210,8 @@ class SimpleImageService {
         });
       }
 
-      const results = await this.processAndUploadImages(req.file);
+      const folder = ALLOWED_UPLOAD_FOLDERS.includes(req.body?.folder) ? req.body.folder : this.productConfig.folder;
+      const results = await this.processAndUploadImages(req.file, folder);
 
       res.status(200).json({
         success: true,
@@ -236,7 +240,8 @@ class SimpleImageService {
         });
       }
 
-      const results = await this.batchUploadImages(req.files);
+      const folder = ALLOWED_UPLOAD_FOLDERS.includes(req.body?.folder) ? req.body.folder : this.productConfig.folder;
+      const results = await this.batchUploadImages(req.files, folder);
 
       res.status(200).json({
         success: true,

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ADMIN_SUB_ROLES } from '../constants/permissions.constants.js';
-import { REJECTION_REASONS } from '../constants/kyc.constants.js';
+import { REJECTION_REASONS, KYC_STATUS } from '../constants/kyc.constants.js';
 import { objectIdSchema } from './kyc.validation.js';
 
 export const assignAdminSubRoleSchema = {
@@ -11,6 +11,18 @@ export const assignAdminSubRoleSchema = {
 };
 
 export const kycReviewParamsSchema = z.object({ vendorId: objectIdSchema });
+
+export const adminListKycSchema = {
+  query: z.object({
+    status: z.enum(Object.values(KYC_STATUS)).optional(),
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+  }),
+};
+
+export const adminGetKycSchema = {
+  params: kycReviewParamsSchema,
+};
 
 export const approveKycSchema = {
   params: kycReviewParamsSchema,

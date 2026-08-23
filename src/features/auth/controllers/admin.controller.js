@@ -15,6 +15,16 @@ export const AdminController = {
     return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, admin, 'Admin sub-role updated'));
   }),
 
+  listKyc: asyncHandler(async (req, res) => {
+    const result = await KycService.adminList(req.query);
+    return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, result, 'KYC list retrieved'));
+  }),
+
+  getKyc: asyncHandler(async (req, res) => {
+    const kyc = await KycService.adminGetByVendor(req.params.vendorId);
+    return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, kyc, 'KYC retrieved'));
+  }),
+
   approveKyc: asyncHandler(async (req, res) => {
     const kyc = await KycService.approve(req.params.vendorId, req.user._id, req.body.comments);
     return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, kyc, 'KYC approved'));

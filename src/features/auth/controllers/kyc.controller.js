@@ -10,6 +10,16 @@ export const KycController = {
     return respond(res, kyc, 'KYC status retrieved');
   }),
 
+  getUploadUrl: asyncHandler(async (req, res) => {
+    const result = await KycService.generateDocumentUploadUrl(req.user._id, req.body);
+    return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, result, 'Presigned upload URL generated'));
+  }),
+
+  resubmit: asyncHandler(async (req, res) => {
+    const kyc = await KycService.resubmit(req.user._id);
+    return respond(res, kyc, 'KYC reopened for resubmission');
+  }),
+
   submitInfo: asyncHandler(async (req, res) => {
     const kyc = await KycService.submitInfo(req.user._id, req.body);
     return respond(res, kyc, 'KYC info submitted');

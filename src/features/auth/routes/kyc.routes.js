@@ -5,6 +5,7 @@ import { IDENTITIES } from '../constants/roles.constants.js';
 import { KycController } from '../controllers/kyc.controller.js';
 import {
   kycInfoSchema,
+  kycUploadUrlSchema,
   kycDocumentsSchema,
   kycBankDetailsSchema,
   kycPaymentInitSchema,
@@ -16,6 +17,8 @@ const router = Router();
 router.use(authenticate, requireIdentity(IDENTITIES.VENDOR));
 
 router.get('/', KycController.getStatus);
+router.post('/resubmit', KycController.resubmit);
+router.post('/documents/upload-url', validate(kycUploadUrlSchema), KycController.getUploadUrl);
 router.post('/steps/info', validate(kycInfoSchema), KycController.submitInfo);
 router.post('/steps/documents', validate(kycDocumentsSchema), KycController.submitDocuments);
 router.post('/steps/bank-details', validate(kycBankDetailsSchema), KycController.submitBankDetails);

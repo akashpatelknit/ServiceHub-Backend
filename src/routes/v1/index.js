@@ -12,6 +12,9 @@ import { paymentRoutes } from '../../features/payment/index.js';
 import searchFeatureRoutes from '../../features/search/index.js';
 import vendorLeadFeatureRoutes from '../../features/vendor-leads/index.js';
 import { dashboardRoutes } from '../../features/dashboard/index.js';
+import vendorManagementFeatureRoutes from '../../features/vendor-management/index.js';
+import notificationRoutes from '../notification.routes.js';
+import imageRoutes from '../image.routes.js';
 
 router.use('/v1', authFeatureRoutes);
 router.use('/v1/addresses', addressFeatureRoutes);
@@ -34,5 +37,8 @@ router.use('/v1/payments', paymentRoutes);
 router.use('/v1/vendor-leads', vendorLeadFeatureRoutes);
 router.use('/v1/search', searchFeatureRoutes);
 router.use('/v1/admin/dashboard', dashboardRoutes);
+router.use('/v1', vendorManagementFeatureRoutes);
+router.use('/v1', notificationRoutes);
+router.use('/v1/images', imageRoutes);
 
 export default router;

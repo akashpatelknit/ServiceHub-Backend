@@ -5,3 +5,7 @@ export const assignVendorSchema = {
   params: z.object({ id: objectIdSchema }),
   body: z.object({ vendorId: objectIdSchema }),
 };
+
+export const vendorCandidatesSchema = {
+  params: z.object({ id: objectIdSchema }),
+};
