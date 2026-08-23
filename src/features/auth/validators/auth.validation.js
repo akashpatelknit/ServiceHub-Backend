@@ -80,6 +80,23 @@ export const resetPasswordSchema = {
   }),
 };
 
+// Shared by /auth/user/me and /auth/vendor/me — CoreAccessor.updateCoreFields
+// allowlists which of these actually land on a given identity's model (e.g. `purpose`
+// and `serviceRadius` are Vendor-only), so no need to duplicate this per identity here.
+export const updateProfileSchema = {
+  body: z.object({
+    firstName: name.optional(),
+    lastName: name.optional(),
+    middleName: name.optional(),
+    email: email.optional(),
+    phoneNumber: phoneNumber.optional(),
+    dob: z.coerce.date().optional(),
+    purpose: z.string().trim().max(500).optional(),
+    serviceRadius: z.number().min(1).max(100).optional(),
+    isAvailable: z.boolean().optional(),
+  }),
+};
+
 export const changePasswordSchema = {
   body: z
     .object({

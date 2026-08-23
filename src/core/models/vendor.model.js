@@ -99,9 +99,9 @@ vendorSchema.virtual('fullName').get(function () {
 });
 
 vendorSchema.virtual('servicemappings', {
-  ref: 'VendorServiceMapping',
+  ref: 'CatalogVendorService',
   localField: '_id',
-  foreignField: 'vendorId',
+  foreignField: 'vendor',
 });
 
 vendorSchema.set('toJSON', { virtuals: true });

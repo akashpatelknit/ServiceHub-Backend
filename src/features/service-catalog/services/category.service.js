@@ -1,5 +1,7 @@
 import { Category } from '../models/category.model.js';
 import { Subcategory } from '../models/subcategory.model.js';
+import { VendorService } from '../models/vendorService.model.js';
+import { VENDOR_SERVICE_TARGET_TYPE } from '../constants/catalog.constants.js';
 import { ApiError } from '../../../utils/index.js';
 
 export const CategoryService = {
@@ -20,9 +22,15 @@ export const CategoryService = {
     const category = await Category.findById(categoryId);
     if (!category) throw new ApiError(404, 'Category not found');
 
-    const hasSubcategories = await Subcategory.exists({ category: categoryId });
+    const [hasSubcategories, hasVendorRequests] = await Promise.all([
+      Subcategory.exists({ category: categoryId }),
+      VendorService.exists({ targetType: VENDOR_SERVICE_TARGET_TYPE.CATEGORY, target: categoryId }),
+    ]);
     if (hasSubcategories) {
       throw new ApiError(409, 'Cannot delete a category that still has subcategories');
+    }
+    if (hasVendorRequests) {
+      throw new ApiError(409, 'Cannot delete a category that vendors have requested or been approved to offer');
     }
 
     await category.deleteOne();

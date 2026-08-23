@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { Category } from '../models/category.model.js';
 import { Subcategory } from '../models/subcategory.model.js';
 import { ServiceGroup } from '../models/serviceGroup.model.js';
+import { VendorService } from '../models/vendorService.model.js';
+import { VENDOR_SERVICE_TARGET_TYPE } from '../constants/catalog.constants.js';
 import { ApiError } from '../../../utils/index.js';
 
 export const SubcategoryService = {
@@ -30,9 +32,15 @@ export const SubcategoryService = {
     const subcategory = await Subcategory.findById(subcategoryId);
     if (!subcategory) throw new ApiError(404, 'Subcategory not found');
 
-    const hasServiceGroups = await ServiceGroup.exists({ subcategory: subcategoryId });
+    const [hasServiceGroups, hasVendorRequests] = await Promise.all([
+      ServiceGroup.exists({ subcategory: subcategoryId }),
+      VendorService.exists({ targetType: VENDOR_SERVICE_TARGET_TYPE.SUBCATEGORY, target: subcategoryId }),
+    ]);
     if (hasServiceGroups) {
       throw new ApiError(409, 'Cannot delete a subcategory that still has service groups');
+    }
+    if (hasVendorRequests) {
+      throw new ApiError(409, 'Cannot delete a subcategory that vendors have requested or been approved to offer');
     }
 
     await subcategory.deleteOne();

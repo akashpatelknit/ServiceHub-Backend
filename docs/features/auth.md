@@ -91,7 +91,7 @@ Admin has **no soft-delete** (`withSoftDelete` is not applied) and **no referral
 
 Same auth-relevant shape as `User` (`phoneNumber` required, `email` optional, `password`, `role: 'vendor'` immutable/legacy, verification/blocked flags, soft-delete, referral), plus vendor-specific fields not owned by this module: `purpose`, `blockReason`, `serviceRadius` (default 5, 1–100 km), `isAvailable` (default `true`), `isOnline` (default `false`), `lastSeen`, `currentLocation` (GeoJSON `Point`, 2dsphere-indexed), `wallet`, `membership`. Virtual `fullName` same pattern.
 
-**Ambiguous:** `Vendor` declares a virtual populate `servicemappings` pointing at `ref: 'VendorServiceMapping'`, `foreignField: 'vendorId'`. No model named `VendorServiceMapping` exists anywhere in the codebase (the actual service-catalog module's model is named differently — see `docs/features/service-catalog.md`). This virtual will always populate as empty/undefined and looks like stale/dead code from a prior naming — do not build frontend features on it.
+`Vendor` also declares a virtual populate `servicemappings` (`ref: 'CatalogVendorService'`, `foreignField: 'vendor'`) — resolves to the service-catalog module's `VendorService` model (see `docs/features/service-catalog.md`), which now targets a Category or Subcategory per request, not a Service.
 
 ### KYC ↔ Vendor/Admin relationship
 
@@ -101,7 +101,7 @@ Same auth-relevant shape as `User` (`phoneNumber` required, `email` optional, `p
 
 ### Auth routes — identical shape per identity, mounted 3×
 
-`buildAuthRouter({ Model, identity, allowSignup })` in `auth.routes.js` is instantiated once per identity at `'/auth/user'` (`allowSignup: true`), `'/auth/vendor'` (`allowSignup: true`), `'/auth/admin'` (`allowSignup: false`). Every route below exists for **all three** identities except `signup`, which only exists for `user` and `vendor`. Replace `{identity}` with `user` / `vendor` / `admin`.
+`buildAuthRouter({ Model, identity, allowSignup, allowProfileUpdate })` in `auth.routes.js` is instantiated once per identity at `'/auth/user'` (`allowSignup: true`), `'/auth/vendor'` (`allowSignup: true`, `allowProfileUpdate: true`), `'/auth/admin'` (`allowSignup: false`). Every route below exists for **all three** identities except `signup` (`user`/`vendor` only) and `PATCH /me` (`vendor` only, currently). Replace `{identity}` with `user` / `vendor` / `admin`.
 
 ---
 **POST `/api/v1/auth/{identity}/signup`** — `user` and `vendor` only, no admin route exists.
@@ -162,6 +162,14 @@ Same auth-relevant shape as `User` (`phoneNumber` required, `email` optional, `p
   ```
   `password`, `refreshToken`, `passwordResetToken`, `passwordResetExpiry` are always excluded. `permissions` is **only attached for the `admin` identity** (derived from `ADMIN_SUB_ROLE_PERMISSIONS[subRole]` at request time, not stored) — the `/auth/user/me` and `/auth/vendor/me` variants return the same document shape without a `permissions` key.
 - Errors: `401` `"Access token missing"` / `"Access token has been revoked"` / `"Invalid access token"` / `"access token expired"`; `403` `"Account is blocked"`; `404` `"Not found"` (actor deleted between token issue and this call).
+
+---
+**PATCH `/api/v1/auth/vendor/me`** — vendor only; no `/auth/user/me` or `/auth/admin/me` equivalent exists.
+- Who: authenticated vendor
+- Body (`updateProfileSchema`): all optional — `firstName`/`lastName`/`middleName` (1–50 chars), `email` (valid format), `phoneNumber` (regex `^\+?[1-9]\d{1,14}$`), `dob` (coerced date), `purpose` (≤500 chars), `serviceRadius` (number, 1–100), `isAvailable` (boolean). Any other key is stripped by Zod before it reaches the service layer.
+- Success: `200`, the updated Vendor document (`password` excluded, same shape as `GET /me`), message `"Profile updated"`.
+- Implementation: dispatches through `CoreAccessor.updateCoreFields('vendor', id, body)` → `updateVendorCoreFields`, which additionally allowlists against `VENDOR_CORE_FIELDS` (`core.accessor.js`) — so even a field this schema lets through (e.g. `isOnline`, which isn't in `updateProfileSchema` at all) would still only ever be set via a different caller, never this endpoint's body. `isOnline` is intentionally **not** in `updateProfileSchema` — it's meant to reflect real-time presence, not a vendor-editable preference.
+- Errors: `404` `"Not found"` (actor deleted between token issue and this call); `400` Zod validation failures.
 
 ---
 **POST `/api/v1/auth/{identity}/logout`**

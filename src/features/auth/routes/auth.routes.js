@@ -15,9 +15,17 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   changePasswordSchema,
+  updateProfileSchema,
 } from '../validators/auth.validation.js';
 
-const buildAuthRouter = ({ Model, identity, allowSignup, signupSchema: signupSchemaOverride, loginSchema: loginSchemaOverride }) => {
+const buildAuthRouter = ({
+  Model,
+  identity,
+  allowSignup,
+  allowProfileUpdate,
+  signupSchema: signupSchemaOverride,
+  loginSchema: loginSchemaOverride,
+}) => {
   const router = Router();
   const controller = createAuthController({ Model, identity });
 
@@ -28,6 +36,9 @@ const buildAuthRouter = ({ Model, identity, allowSignup, signupSchema: signupSch
   router.post('/login', authRateLimit('login'), validate(loginSchemaOverride ?? loginSchema), controller.login);
   router.post('/refresh', validate(refreshTokenSchema), controller.refresh);
   router.get('/me', authenticate, controller.me);
+  if (allowProfileUpdate) {
+    router.patch('/me', authenticate, validate(updateProfileSchema), controller.updateMe);
+  }
   router.post('/logout', authenticate, validate(logoutSchema), controller.logout);
   router.post('/forgot-password', authRateLimit('forgotPassword'), validate(forgotPasswordSchema), controller.forgotPassword);
   router.post('/reset-password', validate(resetPasswordSchema), controller.resetPassword);
@@ -49,7 +60,7 @@ router.use(
     loginSchema: userLoginSchema,
   })
 );
-router.use('/vendor', buildAuthRouter({ Model: Vendor, identity: IDENTITIES.VENDOR, allowSignup: true }));
+router.use('/vendor', buildAuthRouter({ Model: Vendor, identity: IDENTITIES.VENDOR, allowSignup: true, allowProfileUpdate: true }));
 router.use('/admin', buildAuthRouter({ Model: Admin, identity: IDENTITIES.ADMIN, allowSignup: false }));
 
 export default router;

@@ -2,6 +2,7 @@ import { emailProvider } from '../../lib/email/index.js';
 import { orderConfirmationTemplate } from '../../lib/email/templates/orderConfirmation.template.js';
 import { passwordResetTemplate } from '../../lib/email/templates/passwordReset.template.js';
 import { vendorAssignmentTemplate } from '../../lib/email/templates/vendorAssignment.template.js';
+import { vendorServiceReviewedTemplate } from '../../lib/email/templates/vendorServiceReviewed.template.js';
 import { ServiceOrder } from '../../features/service-booking/models/serviceOrder.model.js';
 import { logger } from '../../utils/index.js';
 
@@ -9,6 +10,7 @@ const TEMPLATES = {
   confirmation: orderConfirmationTemplate,
   passwordReset: passwordResetTemplate,
   vendorAssignment: vendorAssignmentTemplate,
+  vendorServiceReviewed: vendorServiceReviewedTemplate,
 };
 
 // Only 'confirmation' jobs carry `serviceOrderNumbers` (populated by the producer

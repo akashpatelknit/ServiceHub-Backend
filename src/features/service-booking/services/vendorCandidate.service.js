@@ -1,8 +1,9 @@
 import { Vendor } from '../../../core/models/index.js';
 import { VendorService } from '../../service-catalog/models/vendorService.model.js';
+import { Service } from '../../service-catalog/models/service.model.js';
 import { Kyc } from '../../auth/models/kyc.model.js';
 import { KYC_STATUS } from '../../auth/constants/kyc.constants.js';
-import { VENDOR_SERVICE_STATUS } from '../../service-catalog/constants/catalog.constants.js';
+import { VENDOR_SERVICE_STATUS, VENDOR_SERVICE_TARGET_TYPE } from '../../service-catalog/constants/catalog.constants.js';
 import { ServiceOrder } from '../models/serviceOrder.model.js';
 import { ApiError } from '../../../utils/index.js';
 import {
@@ -77,26 +78,49 @@ async function getEligibleVendors(order) {
   }
 
   // A vendor is only eligible if approved to offer every service on the order — the
-  // admin is assigning one vendor for the whole order, not per line item.
+  // admin is assigning one vendor for the whole order, not per line item. Approval is
+  // granted at the Category or Subcategory level (never the individual Service level —
+  // see vendorService.service.js), so each order service is resolved to its parent
+  // category/subcategory chain and matched against either.
   const serviceIds = [...new Set(order.items.map((item) => String(item.serviceId)))];
+  const services = await Service.find({ _id: { $in: serviceIds } }).select('category subcategory').lean();
+  const parentsByServiceId = new Map(
+    services.map((s) => [String(s._id), { category: String(s.category), subcategory: String(s.subcategory) }])
+  );
+
+  const categoryIds = [...new Set(services.map((s) => String(s.category)))];
+  const subcategoryIds = [...new Set(services.map((s) => String(s.subcategory)))];
   const mappings = await VendorService.find({
     vendor: { $in: available.map((v) => v._id) },
-    service: { $in: serviceIds },
     status: VENDOR_SERVICE_STATUS.APPROVED,
+    $or: [
+      { targetType: VENDOR_SERVICE_TARGET_TYPE.CATEGORY, target: { $in: categoryIds } },
+      { targetType: VENDOR_SERVICE_TARGET_TYPE.SUBCATEGORY, target: { $in: subcategoryIds } },
+    ],
   })
-    .select('vendor service')
+    .select('vendor targetType target')
     .lean();
 
-  const approvedServicesByVendor = new Map();
+  const approvedCategoriesByVendor = new Map();
+  const approvedSubcategoriesByVendor = new Map();
   for (const mapping of mappings) {
     const key = String(mapping.vendor);
-    if (!approvedServicesByVendor.has(key)) approvedServicesByVendor.set(key, new Set());
-    approvedServicesByVendor.get(key).add(String(mapping.service));
+    const bucket = mapping.targetType === VENDOR_SERVICE_TARGET_TYPE.CATEGORY ? approvedCategoriesByVendor : approvedSubcategoriesByVendor;
+    if (!bucket.has(key)) bucket.set(key, new Set());
+    bucket.get(key).add(String(mapping.target));
   }
 
   const serviceEligible = available.filter((v) => {
-    const approved = approvedServicesByVendor.get(String(v._id));
-    return approved && serviceIds.every((sid) => approved.has(sid));
+    const key = String(v._id);
+    const approvedCategories = approvedCategoriesByVendor.get(key);
+    const approvedSubcategories = approvedSubcategoriesByVendor.get(key);
+    if (!approvedCategories && !approvedSubcategories) return false;
+
+    return serviceIds.every((sid) => {
+      const parents = parentsByServiceId.get(sid);
+      if (!parents) return false;
+      return approvedSubcategories?.has(parents.subcategory) || approvedCategories?.has(parents.category);
+    });
   });
   if (serviceEligible.length === 0) {
     return { reasonCode: CANDIDATE_REASON_CODES.NO_APPROVED_SERVICE_MAPPING, vendors: [] };

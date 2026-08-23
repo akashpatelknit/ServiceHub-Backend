@@ -54,7 +54,7 @@ export const adminVendorService = {
 
     const [addresses, approvedServices, recentOrders] = await Promise.all([
       Address.find({ owner: vendorId, ownerType: 'Vendor' }),
-      VendorService.find({ vendor: vendorId, status: VENDOR_SERVICE_STATUS.APPROVED }).populate('service', 'name'),
+      VendorService.find({ vendor: vendorId, status: VENDOR_SERVICE_STATUS.APPROVED }).populate('target', 'name'),
       CustomerOrder.find({ assignedVendor: vendorId, orderType: 'service' })
         .sort({ createdAt: -1 })
         .limit(10)

@@ -49,6 +49,14 @@ export const CoreAccessor = {
     return Vendor.findByIdAndUpdate(id, { $set: pickAllowed(updates, VENDOR_CORE_FIELDS) }, { new: true, runValidators: true });
   },
 
+  // Dispatches to the identity's own allowlisted updater — the one entry point the
+  // shared auth controller (PATCH /me) needs, without branching on identity itself.
+  updateCoreFields(identity, id, updates) {
+    if (identity === IDENTITIES.USER) return CoreAccessor.updateUserCoreFields(id, updates);
+    if (identity === IDENTITIES.VENDOR) return CoreAccessor.updateVendorCoreFields(id, updates);
+    throw new ApiError(400, `Profile self-update is not supported for identity: ${identity}`);
+  },
+
   setBlocked(identity, id, isBlocked, blockReason) {
     const Model = modelFor(identity);
     const updates = { isBlocked };

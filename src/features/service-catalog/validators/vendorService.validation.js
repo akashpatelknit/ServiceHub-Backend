@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { VENDOR_SERVICE_STATUS } from '../constants/catalog.constants.js';
+import { VENDOR_SERVICE_STATUS, VENDOR_SERVICE_TARGET_TYPE } from '../constants/catalog.constants.js';
 import { objectIdSchema, paginationSchema } from './common.validation.js';
 
 export const requestServiceSchema = {
   body: z.object({
-    service: objectIdSchema,
+    targetType: z.enum(Object.values(VENDOR_SERVICE_TARGET_TYPE)),
+    targetId: objectIdSchema,
   }),
 };
 
@@ -28,5 +29,13 @@ export const listMyVendorServicesSchema = {
 export const listVendorServicesSchema = {
   query: paginationSchema.extend({
     status: z.enum(Object.values(VENDOR_SERVICE_STATUS)).optional(),
+    search: z.string().trim().min(1).optional(),
+  }),
+};
+
+export const listAvailableServicesSchema = {
+  query: paginationSchema.extend({
+    category: objectIdSchema.optional(),
+    search: z.string().trim().min(1).optional(),
   }),
 };

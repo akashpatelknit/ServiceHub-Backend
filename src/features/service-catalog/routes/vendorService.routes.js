@@ -7,6 +7,7 @@ import {
   requestServiceSchema,
   listMyVendorServicesSchema,
   listVendorServicesSchema,
+  listAvailableServicesSchema,
   vendorServiceIdParamSchema,
   rejectVendorServiceSchema,
 } from '../validators/vendorService.validation.js';
@@ -15,13 +16,25 @@ const router = Router();
 
 router.use(authenticate);
 
-// Vendor — request a service from the catalog, view own request statuses.
+// Vendor — browse the catalog, request a service, view/withdraw own requests.
+router.get(
+  '/available',
+  requireIdentity(IDENTITIES.VENDOR),
+  validate(listAvailableServicesSchema),
+  VendorServiceController.listAvailable
+);
 router.post('/', requireIdentity(IDENTITIES.VENDOR), validate(requestServiceSchema), VendorServiceController.request);
 router.get(
   '/me',
   requireIdentity(IDENTITIES.VENDOR),
   validate(listMyVendorServicesSchema),
   VendorServiceController.listMine
+);
+router.delete(
+  '/:vendorServiceId',
+  requireIdentity(IDENTITIES.VENDOR),
+  validate(vendorServiceIdParamSchema),
+  VendorServiceController.withdraw
 );
 
 // Admin — view requests (optionally filtered by status, e.g. ?status=pending), approve/reject.

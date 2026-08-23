@@ -3,6 +3,7 @@ import { ApiResponse, ApiError, asyncHandler } from '../../../utils/index.js';
 import { AuthStrategyRegistry } from '../strategies/strategy.registry.js';
 import { TokenService } from '../services/token.service.js';
 import { BlacklistService } from '../services/blacklist.service.js';
+import { CoreAccessor } from '../services/core.accessor.js';
 import { queues } from '../../../lib/queue/queues.js';
 import { AUTH_PROVIDERS } from '../constants/providers.constants.js';
 import { IDENTITIES } from '../constants/roles.constants.js';
@@ -102,6 +103,21 @@ export const createAuthController = ({ Model, identity }) => {
       }
 
       return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, payload, 'Success'));
+    }),
+
+    // CoreAccessor allowlists which fields actually land on this identity's model —
+    // anything else in the body is silently dropped, not rejected, matching the
+    // existing "narrow, allowlisted, no raw query access" contract.
+    updateMe: asyncHandler(async (req, res) => {
+      await CoreAccessor.updateCoreFields(identity, req.user._id, req.body);
+      // Re-fetch rather than trust the update result directly — same reasoning as
+      // `me` above: password isn't select:false on the schema.
+      const actor = await Model.findById(req.user._id).select('-password');
+      if (!actor) {
+        throw new ApiError(404, 'Not found');
+      }
+
+      return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, actor.toJSON(), 'Profile updated'));
     }),
 
     logout: asyncHandler(async (req, res) => {

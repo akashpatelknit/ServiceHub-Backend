@@ -1,5 +1,4 @@
 import { Service } from '../models/service.model.js';
-import { VendorService } from '../models/vendorService.model.js';
 import { AddOn } from '../models/addOn.model.js';
 import { ApiError } from '../../../utils/index.js';
 
@@ -22,13 +21,9 @@ export const ServiceCatalogItemService = {
     const service = await Service.findById(serviceId);
     if (!service) throw new ApiError(404, 'Service not found');
 
-    const [hasVendorRequests, hasAddOns] = await Promise.all([
-      VendorService.exists({ service: serviceId }),
-      AddOn.exists({ service: serviceId }),
-    ]);
-
-    if (hasVendorRequests || hasAddOns) {
-      throw new ApiError(409, 'Cannot delete a service that has vendor requests or add-ons attached to it');
+    const hasAddOns = await AddOn.exists({ service: serviceId });
+    if (hasAddOns) {
+      throw new ApiError(409, 'Cannot delete a service that has add-ons attached to it');
     }
 
     await service.deleteOne();

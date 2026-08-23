@@ -4,6 +4,15 @@ export const VENDOR_SERVICE_STATUS = {
   REJECTED: 'rejected',
 };
 
+// A vendor requests approval at the Category level (broadest — covers every current
+// and future Subcategory/Service underneath it) or the Subcategory level (narrower —
+// covers every current and future Service under just that Subcategory). Never at the
+// individual Service level — see vendorService.service.js / vendorCandidate.service.js.
+export const VENDOR_SERVICE_TARGET_TYPE = {
+  CATEGORY: 'category',
+  SUBCATEGORY: 'subcategory',
+};
+
 // Drives frontend click behavior on Category/Subcategory tiles: 'modal' opens a picker
 // sheet with the item's children (falling back to 'navigate' if it turns out to have
 // none); 'navigate' routes straight to the detail page.
